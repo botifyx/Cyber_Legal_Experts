@@ -22,8 +22,7 @@ const mockExperts = [
     specialization: "Cybercrime & Digital Forensics",
     rating: 4.8,
     reviews: 93,
-  },
-  // Add more mock experts...
+  }
 ];
 
 export default function ExpertDirectory() {
@@ -32,8 +31,7 @@ export default function ExpertDirectory() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    // In a real implementation, this would call the OpenAI API
-    // to search for experts based on location
+    // In a real implementation, this would call an API to search for experts
   };
 
   return (

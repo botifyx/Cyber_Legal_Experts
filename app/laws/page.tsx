@@ -4,8 +4,7 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Search, Globe, BookOpen, AlertTriangle } from "lucide-react";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search, Globe, AlertTriangle } from "lucide-react";
 
 const mockLaws = [
   {
