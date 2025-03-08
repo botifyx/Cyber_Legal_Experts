@@ -1,7 +1,5 @@
 import { OpenAIStream, StreamingTextResponse } from 'ai';
 import { Configuration, OpenAIApi } from 'openai-edge';
-import dotenv from "dotenv";
-dotenv.config();
 
 // Create an OpenAI API client (that's edge friendly!)
 const config = new Configuration({
