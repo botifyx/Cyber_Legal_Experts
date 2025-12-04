@@ -1,4 +1,3 @@
-
 import { GoogleGenAI, Chat, GenerateContentResponse, GroundingChunk, Part, Type, Modality, LiveCallbacks, LiveConnectRequest } from '@google/genai';
 import { CaseDna, CyberRiskAssessment, PrecedentPrediction, Quiz } from '../types';
 
@@ -6,9 +5,26 @@ import { CaseDna, CyberRiskAssessment, PrecedentPrediction, Quiz } from '../type
 // The conditional check and fallback API key have been removed.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-export const createCylexChat = (): Chat => {
+export interface UserContext {
+    location?: string;
+    time?: string;
+    date?: string;
+    deviceType?: string;
+    operatingSystem?: string;
+    language?: string; // Added language support
+}
+
+export const createCylexChat = (userContext?: UserContext): Chat => {
+  const languageInstruction = userContext?.language 
+    ? `\n\nIMPORTANT: The user's detected language is ${userContext.language}. You MUST reply to the user in ${userContext.language}, regardless of the language of their initial prompt, unless they explicitly ask otherwise.` 
+    : "";
+
+  const contextPrompt = userContext 
+    ? `\n\n[Contextual Information]\nUser's Local Time: ${userContext.time}\nUser's Date: ${userContext.date}\nUser's Location/Timezone: ${userContext.location}\nUser's Device: ${userContext.deviceType}\nUser's Operating System: ${userContext.operatingSystem}\nUser's Language: ${userContext.language || 'English'}\n\nUse this information to personalize greetings (e.g., 'Good morning' vs 'Good evening') and provide jurisdiction-relevant advice if the user's location implies a specific legal framework (e.g., GDPR for EU, CCPA for California, etc.). Additionally, if providing technical steps (e.g., checking privacy settings or locating logs), tailor your instructions to their specific Operating System and Device Type.${languageInstruction}`
+    : "";
+
   return ai.chats.create({
-    model: 'gemini-2.5-flash',
+    model: 'gemini-2.5-pro',
     config: {
       systemInstruction: `You are Cylex, a highly intelligent and proactive AI legal assistant for Cyber Legal Experts. Your core purpose is to act as a legal copilot, not just an information source. Your expertise is in cyber laws, data privacy, digital forensics, and intellectual property theft. You are precise, helpful, and always maintain a formal yet approachable tone.
 
@@ -20,13 +36,14 @@ Your defining characteristic is being proactive. After answering any query, you 
 When analyzing documents or images, you must be exceptionally inquisitive and adopt a critical mindset. Your goal is to uncover hidden risks. Actively probe for ambiguities, omissions, or clauses that could disadvantage the user. For instance:
 - When reviewing a contract, ask targeted questions like: "I've noticed the liability clause in section 4.2 is quite broad. Have you considered the potential implications of this?" or "Is there a data processing agreement (DPA) that should accompany this service agreement?"
 
-Always remember: You do not provide legal advice, but you empower users by generating drafts (case notes, notices, compliance reports) based on the information they provide and helping them formulate personalized legal action plans. Your role is to assist and highlight potential issues for their review with a qualified legal professional.`,
+Always remember: You do not provide legal advice, but you empower users by generating drafts (case notes, notices, compliance reports) based on the information they provide and helping them formulate personalized legal action plans. Your role is to assist and highlight potential issues for their review with a qualified legal professional.${contextPrompt}`,
     },
   });
 };
 
 const base64ToGeminiPart = (base64Data: string): Part => {
-    const match = base64Data.match(/^data:(image\/\w+);base64,(.+)$/);
+    // Support any mime type (image, pdf, text, etc)
+    const match = base64Data.match(/^data:([^;]+);base64,(.+)$/);
     if (!match) {
         throw new Error('Invalid base64 string');
     }
@@ -43,18 +60,19 @@ const base64ToGeminiPart = (base64Data: string): Part => {
 export const sendCylexMessage = async (
     chat: Chat, 
     message: string,
-    image?: string
+    image?: string | null
 ): Promise<GenerateContentResponse> => {
     const contents: Part[] = [{ text: message }];
     if (image) {
         contents.push(base64ToGeminiPart(image));
     }
-    const response = await chat.sendMessage({ parts: contents });
+    // Correct usage: pass the array of parts to the 'message' property
+    const response = await chat.sendMessage({ message: contents });
     return response;
 };
 
-export const analyzeDocument = async (documentText: string): Promise<string> => {
-  const prompt = `Please analyze the following legal document for potential risks, inconsistencies, or areas of concern. Provide a detailed, well-structured summary of your findings using markdown for formatting. Document text:\n\n---\n\n${documentText}`;
+export const analyzeDocument = async (documentText: string, language: string = 'English'): Promise<string> => {
+  const prompt = `Please analyze the following legal document for potential risks, inconsistencies, or areas of concern. Provide a detailed, well-structured summary of your findings using markdown for formatting. \n\nIMPORTANT: Provide the analysis in ${language}.\n\nDocument text:\n\n---\n\n${documentText}`;
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-pro',
@@ -70,8 +88,8 @@ export const analyzeDocument = async (documentText: string): Promise<string> => 
   }
 };
 
-export const summarizeLegalNews = async (topic: string): Promise<{ summary: string, sources: GroundingChunk[] }> => {
-  const prompt = `Summarize the latest court rulings or news regarding: ${topic}. Provide a concise but comprehensive summary.`;
+export const summarizeLegalNews = async (topic: string, language: string = 'English'): Promise<{ summary: string, sources: GroundingChunk[] }> => {
+  const prompt = `Summarize the latest court rulings or news regarding: ${topic}. Provide a concise but comprehensive summary in ${language}.`;
   try {
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -89,8 +107,8 @@ export const summarizeLegalNews = async (topic: string): Promise<{ summary: stri
   }
 };
 
-export const generateLegalActionPlan = async (caseDetails: string): Promise<string> => {
-    const prompt = `Based on the following case details, generate a personalized, step-by-step legal action plan. This plan should be for informational purposes only and not constitute legal advice. It should outline potential actions, considerations, and next steps in a clear, organized manner using markdown. Case details:\n\n---\n\n${caseDetails}`;
+export const generateLegalActionPlan = async (caseDetails: string, language: string = 'English'): Promise<string> => {
+    const prompt = `Based on the following case details, generate a personalized, step-by-step legal action plan in ${language}. This plan should be for informational purposes only and not constitute legal advice. It should outline potential actions, considerations, and next steps in a clear, organized manner using markdown. Case details:\n\n---\n\n${caseDetails}`;
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-pro',
@@ -106,8 +124,8 @@ export const generateLegalActionPlan = async (caseDetails: string): Promise<stri
     }
 };
 
-export const analyzeCaseDna = async (caseDetails: string): Promise<CaseDna> => {
-  const prompt = `Analyze the following case description or document. Extract a detailed timeline of events, identify all key entities (people, organizations, digital assets), summarize evidence patterns, and list potential legal liabilities. Case Details:\n\n---\n\n${caseDetails}`;
+export const analyzeCaseDna = async (caseDetails: string, language: string = 'English'): Promise<CaseDna> => {
+  const prompt = `Analyze the following case description or document. Extract a detailed timeline of events, identify all key entities (people, organizations, digital assets), summarize evidence patterns, and list potential legal liabilities. Translate all content to ${language}. Case Details:\n\n---\n\n${caseDetails}`;
   
   try {
     const response = await ai.models.generateContent({
@@ -125,7 +143,7 @@ export const analyzeCaseDna = async (caseDetails: string): Promise<CaseDna> => {
                 type: Type.OBJECT,
                 properties: {
                   date: { type: Type.STRING, description: "The date of the event (can be specific or approximate)." },
-                  event: { type: Type.STRING, description: "A concise description of the event." },
+                  event: { type: Type.STRING, description: `A concise description of the event in ${language}.` },
                 },
                 required: ['date', 'event'],
               },
@@ -136,8 +154,8 @@ export const analyzeCaseDna = async (caseDetails: string): Promise<CaseDna> => {
                 type: Type.OBJECT,
                 properties: {
                   name: { type: Type.STRING, description: "The name of the entity." },
-                  type: { type: Type.STRING, description: "The type of entity (e.g., Person, Organization, Digital Asset, Other)." },
-                  description: { type: Type.STRING, description: "A brief description of the entity's role in the case." },
+                  type: { type: Type.STRING, description: `The type of entity in ${language}.` },
+                  description: { type: Type.STRING, description: `A brief description of the entity's role in the case in ${language}.` },
                 },
                 required: ['name', 'type', 'description'],
               },
@@ -145,12 +163,12 @@ export const analyzeCaseDna = async (caseDetails: string): Promise<CaseDna> => {
             evidencePatterns: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: "Observed patterns or connections in the evidence (e.g., communication logs, access records)."
+              description: `Observed patterns or connections in the evidence in ${language}.`
             },
             legalLiabilities: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
-              description: "Potential legal liabilities or claims that could arise from the facts."
+              description: `Potential legal liabilities or claims in ${language}.`
             },
           },
           required: ['timeline', 'entities', 'evidencePatterns', 'legalLiabilities'],
@@ -167,8 +185,8 @@ export const analyzeCaseDna = async (caseDetails: string): Promise<CaseDna> => {
   }
 };
 
-export const assessCyberRisk = async (text: string): Promise<CyberRiskAssessment> => {
-  const prompt = `Act as a senior cyber risk analyst. Analyze the following text (which could be a privacy policy, terms of service, contract, or description of a digital presence) for potential cyber and legal risks. Based on your analysis, provide a structured JSON response. Text for analysis:\n\n---\n\n${text}`;
+export const assessCyberRisk = async (text: string, language: string = 'English'): Promise<CyberRiskAssessment> => {
+  const prompt = `Act as a senior cyber risk analyst. Analyze the following text (which could be a privacy policy, terms of service, contract, or description of a digital presence) for potential cyber and legal risks. Based on your analysis, provide a structured JSON response in ${language}. Text for analysis:\n\n---\n\n${text}`;
 
   try {
     const response = await ai.models.generateContent({
@@ -190,15 +208,15 @@ export const assessCyberRisk = async (text: string): Promise<CyberRiskAssessment
             },
             summary: {
               type: Type.STRING,
-              description: "A concise, one-sentence summary of the overall risk profile."
+              description: `A concise, one-sentence summary of the overall risk profile in ${language}.`
             },
             identifiedRisks: {
               type: Type.ARRAY,
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  risk: { type: Type.STRING, description: "A specific, clearly identified risk." },
-                  recommendation: { type: Type.STRING, description: "A concrete, actionable recommendation to mitigate this risk." },
+                  risk: { type: Type.STRING, description: `A specific, clearly identified risk in ${language}.` },
+                  recommendation: { type: Type.STRING, description: `A concrete, actionable recommendation in ${language}.` },
                 },
                 required: ['risk', 'recommendation'],
               },
@@ -218,8 +236,8 @@ export const assessCyberRisk = async (text: string): Promise<CyberRiskAssessment
   }
 };
 
-export const predictPrecedent = async (caseDetails: string): Promise<PrecedentPrediction> => {
-  const prompt = `Act as an expert legal analyst specializing in case law and precedent. Analyze the following case description. Based on historical data and legal precedents, predict the most likely outcomes, identify the key legal statutes or sections of law that are relevant, and suggest potential legal strategies. Provide a structured JSON response. Case details:\n\n---\n\n${caseDetails}`;
+export const predictPrecedent = async (caseDetails: string, language: string = 'English'): Promise<PrecedentPrediction> => {
+  const prompt = `Act as an expert legal analyst specializing in case law and precedent. Analyze the following case description. Based on historical data and legal precedents, predict the most likely outcomes, identify the key legal statutes or sections of law that are relevant, and suggest potential legal strategies. Provide a structured JSON response in ${language}. Case details:\n\n---\n\n${caseDetails}`;
 
   try {
     const response = await ai.models.generateContent({
@@ -237,8 +255,8 @@ export const predictPrecedent = async (caseDetails: string): Promise<PrecedentPr
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  outcome: { type: Type.STRING, description: "A concise description of the potential outcome (e.g., 'Summary Judgment for Defendant', 'Settlement', 'Favorable ruling for Plaintiff')." },
-                  reasoning: { type: Type.STRING, description: "Brief reasoning for this prediction based on precedent." },
+                  outcome: { type: Type.STRING, description: `A concise description of the potential outcome in ${language}.` },
+                  reasoning: { type: Type.STRING, description: `Brief reasoning for this prediction based on precedent in ${language}.` },
                   confidenceScore: { type: Type.STRING, description: "The AI's confidence in this prediction: 'High', 'Medium', or 'Low'." },
                   likelihoodPercentage: { type: Type.NUMBER, description: "A numerical likelihood from 0 to 100." },
                 },
@@ -251,8 +269,8 @@ export const predictPrecedent = async (caseDetails: string): Promise<PrecedentPr
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  section: { type: Type.STRING, description: "The name or citation of the legal section (e.g., 'GDPR Article 17', '17 U.S.C. § 106')." },
-                  relevance: { type: Type.STRING, description: "How this section is relevant to the case." },
+                  section: { type: Type.STRING, description: "The name or citation of the legal section." },
+                  relevance: { type: Type.STRING, description: `How this section is relevant to the case in ${language}.` },
                 },
                 required: ['section', 'relevance'],
               },
@@ -263,8 +281,8 @@ export const predictPrecedent = async (caseDetails: string): Promise<PrecedentPr
               items: {
                 type: Type.OBJECT,
                 properties: {
-                  strategy: { type: Type.STRING, description: "A title for the strategy (e.g., 'Focus on Evidentiary Chain of Custody')." },
-                  description: { type: Type.STRING, description: "A brief description of what the strategy entails." },
+                  strategy: { type: Type.STRING, description: `A title for the strategy in ${language}.` },
+                  description: { type: Type.STRING, description: `A brief description of what the strategy entails in ${language}.` },
                 },
                 required: ['strategy', 'description'],
               },
@@ -320,6 +338,35 @@ export const generateSpeech = async (text: string): Promise<string | null> => {
     }
 };
 
+// --- Knowledge Hub Feature --- //
+export const getCyberLawInfo = async (region: string, language: string = 'English'): Promise<{ content: string, sources: GroundingChunk[] }> => {
+    const prompt = `Provide a comprehensive overview of the key cyber laws for "${region}". Provide the response in ${language}. The overview should be well-structured using Markdown and include sections for:
+1.  **Key Legislation:** List the primary laws governing cybercrime, data protection, and electronic transactions.
+2.  **Data Privacy & Protection:** Detail the core principles of data protection, user rights (e.g., access, erasure), and requirements for data controllers/processors. Mention the key regulatory body.
+3.  **Data Breach Notification:** Explain the mandatory requirements for notifying authorities and affected individuals in case of a data breach, including timelines.
+4.  **Cybercrime Offenses:** Summarize common offenses like unauthorized access, data interference, and online fraud.
+5.  **Recent Developments:** Briefly mention any recent or upcoming changes in the legal landscape.
+
+Use Google Search to ensure the information is up-to-date and accurate.
+This is for informational purposes only.`;
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                tools: [{ googleSearch: {} }],
+            },
+        });
+        const content = response.text;
+        const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+        return { content, sources };
+    } catch (error) {
+        console.error(`Error fetching cyber law info for ${region}:`, error);
+        throw new Error(`An error occurred while fetching legal information for ${region}.`);
+    }
+};
+
+
 // --- Engagement Hub Features --- //
 
 export const connectCylexVoice = (callbacks: LiveCallbacks) => {
@@ -339,8 +386,8 @@ export const connectCylexVoice = (callbacks: LiveCallbacks) => {
     return ai.live.connect(config);
 };
 
-export const generateQuizQuestions = async (): Promise<Quiz> => {
-  const prompt = "Generate a 5-question multiple-choice quiz about cyber law. Topics can include data privacy (like GDPR or CCPA), computer fraud, and digital intellectual property. For each question, provide a question, four options, the 0-indexed integer of the correct answer, and a brief explanation for why that answer is correct. Ensure the questions are unique and challenging.";
+export const generateQuizQuestions = async (language: string = 'English'): Promise<Quiz> => {
+  const prompt = `Generate a 5-question multiple-choice quiz about cyber law in ${language}. Topics can include data privacy (like GDPR or CCPA), computer fraud, and digital intellectual property. For each question, provide a question, four options, the 0-indexed integer of the correct answer, and a brief explanation for why that answer is correct. Ensure the questions are unique and challenging.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -372,8 +419,8 @@ export const generateQuizQuestions = async (): Promise<Quiz> => {
   }
 };
 
-export const generateNewsletter = async (region: string): Promise<{ content: string, sources: GroundingChunk[] }> => {
-    const prompt = `Generate a professional legal newsletter for the region of "${region}". The newsletter should cover recent court rulings, new legislation, and significant news related to cyber law, data privacy, and intellectual property. Use Google Search to find up-to-date information. Format the output using markdown, including headings for different sections and links to the original sources where possible. Title the newsletter appropriately.`;
+export const generateNewsletter = async (region: string, language: string = 'English'): Promise<{ content: string, sources: GroundingChunk[] }> => {
+    const prompt = `Generate a professional legal newsletter for the region of "${region}" in ${language}. The newsletter should cover recent court rulings, new legislation, and significant news related to cyber law, data privacy, and intellectual property. Use Google Search to find up-to-date information. Format the output using markdown, including headings for different sections and links to the original sources where possible. Title the newsletter appropriately.`;
     try {
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',

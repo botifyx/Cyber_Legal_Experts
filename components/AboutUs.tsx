@@ -1,8 +1,9 @@
-import React from 'react';
-import { TimelineMilestone } from '../types';
-import { BotIcon, GavelIcon, LogoIcon } from './icons';
 
-// --- Mock Data --- //
+import React, { useState } from 'react';
+import { TimelineMilestone } from '../types';
+import { BotIcon, GavelIcon, LogoIcon, ChevronDownIcon } from './icons';
+import { useLanguage } from './LanguageContext';
+
 const MOCK_TIMELINE: TimelineMilestone[] = [
     { year: "1986", title: "Computer Fraud and Abuse Act (CFAA)", description: "The first major US legislation addressing computer crime, setting a foundational legal framework for hacking.", type: "law" },
     { year: "1997", title: "Deep Blue defeats Garry Kasparov", description: "IBM's chess computer's victory marked a major milestone in AI's ability to tackle complex strategic tasks.", type: "ai" },
@@ -15,38 +16,49 @@ const MOCK_TIMELINE: TimelineMilestone[] = [
 ];
 
 const AboutUs: React.FC = () => {
+    const { t } = useLanguage();
+    const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+    const toggleItem = (index: number) => {
+        setExpandedIndex(expandedIndex === index ? null : index);
+    };
+    
     return (
         <div className="max-w-5xl w-full mx-auto p-4 sm:p-6 bg-slate-800/50 border border-slate-700 rounded-lg shadow-2xl">
             <div className="text-center mb-12">
                 <LogoIcon className="mx-auto h-16 w-16 text-cyan-400" />
-                <h2 className="mt-4 text-3xl font-bold text-slate-100">About Cyber Legal Experts</h2>
+                <h2 className="mt-4 text-3xl font-bold text-slate-100">{t("about.title")}</h2>
                 <p className="mt-2 text-md text-slate-400 max-w-3xl mx-auto">
-                    We stand at the critical intersection of law and technology. Our firm was founded on the principle that the rapid evolution of the digital world requires an equally innovative approach to legal practice. We are not just lawyers; we are technologists, strategists, and pioneers dedicated to navigating the complexities of cyber law with unparalleled expertise and AI-driven insights.
+                    {t("about.desc")}
                 </p>
             </div>
 
-            {/* Timeline Section */}
+            {/* Accordion Timeline Section */}
             <div>
-                <h3 className="text-2xl font-bold text-slate-100 text-center mb-8">A Parallel History: Cyber Law & AI</h3>
-                <div className="relative w-full max-w-3xl mx-auto">
-                    {/* Vertical Line */}
-                    <div className="absolute left-1/2 top-0 h-full w-0.5 bg-slate-700"></div>
-
+                <h3 className="text-2xl font-bold text-slate-100 text-center mb-8">{t("about.timeline")}</h3>
+                <div className="space-y-4 max-w-3xl mx-auto">
                     {MOCK_TIMELINE.map((item, index) => (
-                        <div key={index} className={`relative flex items-center mb-10 ${item.type === 'law' ? 'justify-start' : 'justify-end'}`}>
-                            <div className={`w-[calc(50%-2rem)] ${item.type === 'law' ? 'text-right' : 'text-left'}`}>
-                                <div className="p-4 bg-slate-900 border border-slate-700 rounded-lg">
-                                    <p className="font-bold text-cyan-400 text-lg">{item.year}</p>
-                                    <p className="font-semibold text-slate-200 mt-1">{item.title}</p>
-                                    <p className="text-sm text-slate-400 mt-1">{item.description}</p>
+                        <div key={index} className="border border-slate-700 rounded-lg bg-slate-900 overflow-hidden">
+                             <button
+                                onClick={() => toggleItem(index)}
+                                className="w-full flex items-center justify-between p-4 text-left hover:bg-slate-800 transition-colors"
+                             >
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-2 rounded-full border border-slate-700 bg-slate-800 ${item.type === 'law' ? 'text-orange-400' : 'text-purple-400'}`}>
+                                         {item.type === 'law' ? <GavelIcon className="w-5 h-5" /> : <BotIcon className="w-5 h-5" />}
+                                    </div>
+                                    <div>
+                                        <span className="text-cyan-400 font-bold block text-sm">{item.year}</span>
+                                        <span className="text-slate-200 font-semibold">{item.title}</span>
+                                    </div>
                                 </div>
-                            </div>
-                            {/* Icon on the timeline */}
-                            <div className="absolute left-1/2 -translate-x-1/2 z-10 p-2 bg-slate-800 rounded-full border-2 border-slate-700">
-                                {item.type === 'law' 
-                                    ? <GavelIcon className="w-6 h-6 text-orange-400" /> 
-                                    : <BotIcon className="w-6 h-6 text-purple-400" />}
-                            </div>
+                                <ChevronDownIcon className={`w-5 h-5 text-slate-400 transition-transform duration-300 ${expandedIndex === index ? 'rotate-180' : ''}`} />
+                             </button>
+                             <div className={`transition-all duration-300 ease-in-out ${expandedIndex === index ? 'max-h-40 opacity-100' : 'max-h-0 opacity-0'}`}>
+                                <div className="p-4 pt-0 text-slate-400 text-sm border-t border-slate-800/50 mt-2">
+                                    {item.description}
+                                </div>
+                             </div>
                         </div>
                     ))}
                 </div>

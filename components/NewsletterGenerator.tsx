@@ -1,17 +1,21 @@
+
 import React, { useState, useCallback } from 'react';
 import { generateNewsletter } from '../services/geminiService';
 import { GroundingSource } from '../types';
 import { LoadingIcon, MailIcon, LinkIcon, SearchIcon } from './icons';
+import { useLanguage } from './LanguageContext';
+import { SUPPORTED_LANGUAGES } from '../services/localizationService';
 
 interface NewsletterGeneratorProps {
     onBack: () => void;
 }
 
 const NewsletterGenerator: React.FC<NewsletterGeneratorProps> = ({ onBack }) => {
-    const [region, setRegion] = useState('California');
+    const [region, setRegion] = useState('');
     const [result, setResult] = useState<{ content: string; sources: GroundingSource[] } | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const { t, language } = useLanguage();
 
     const handleGenerate = useCallback(async () => {
         if (!region.trim()) {
@@ -24,25 +28,26 @@ const NewsletterGenerator: React.FC<NewsletterGeneratorProps> = ({ onBack }) => 
         setError('');
 
         try {
-            const response = await generateNewsletter(region);
+            const langName = SUPPORTED_LANGUAGES.find(l => l.code === language)?.name || 'English';
+            const response = await generateNewsletter(region, langName);
             setResult(response);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred.');
         } finally {
             setIsLoading(false);
         }
-    }, [region]);
+    }, [region, language]);
 
     return (
         <div className="max-w-4xl w-full mx-auto">
             <div className="flex justify-between items-center mb-6">
                 <div className="text-left">
                     <MailIcon className="h-12 w-12 text-cyan-400" />
-                    <h2 className="mt-2 text-2xl font-semibold text-slate-100">AI Legal Newsletter Generator</h2>
-                    <p className="mt-1 text-sm text-slate-400">Get a personalized legal newsletter for your specified region.</p>
+                    <h2 className="mt-2 text-2xl font-semibold text-slate-100">{t("news.title")}</h2>
+                    <p className="mt-1 text-sm text-slate-400">{t("news.subtitle")}</p>
                 </div>
                 <button onClick={onBack} className="text-sm font-semibold text-cyan-400 hover:text-cyan-300">
-                    &larr; Back to Hub
+                    &larr; {t("news.back")}
                 </button>
             </div>
 
@@ -52,7 +57,7 @@ const NewsletterGenerator: React.FC<NewsletterGeneratorProps> = ({ onBack }) => 
                         type="text"
                         value={region}
                         onChange={(e) => setRegion(e.target.value)}
-                        placeholder="e.g., European Union"
+                        placeholder={t("news.placeholder")}
                         className="w-full bg-slate-700 text-slate-200 placeholder-slate-400 rounded-lg py-2 px-4 focus:outline-none focus:ring-2 focus:ring-cyan-500"
                     />
                     <button
@@ -60,7 +65,7 @@ const NewsletterGenerator: React.FC<NewsletterGeneratorProps> = ({ onBack }) => 
                         disabled={isLoading}
                         className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed flex items-center justify-center gap-2 w-full sm:w-auto flex-shrink-0"
                     >
-                        {isLoading ? <LoadingIcon className="w-5 h-5"/> : <><SearchIcon className="w-5 h-5" /><span>Generate</span></>}
+                        {isLoading ? <LoadingIcon className="w-5 h-5"/> : <><SearchIcon className="w-5 h-5" /><span>{t("news.btn")}</span></>}
                     </button>
                 </div>
 
@@ -69,19 +74,19 @@ const NewsletterGenerator: React.FC<NewsletterGeneratorProps> = ({ onBack }) => 
                 {isLoading && !result && (
                     <div className="text-center p-8">
                         <LoadingIcon className="w-8 h-8 mx-auto text-cyan-400" />
-                        <p className="mt-2 text-slate-400">Generating your newsletter...</p>
+                        <p className="mt-2 text-slate-400">{t("news.loading")}</p>
                     </div>
                 )}
 
                 {result && (
                     <div className="mt-6 space-y-6">
-                        <h3 className="text-xl font-semibold text-slate-100 text-center mb-4">Your Custom Newsletter</h3>
+                        <h3 className="text-xl font-semibold text-slate-100 text-center mb-4">{t("news.result_title")}</h3>
                         <div className="p-4 bg-slate-800 rounded-lg border border-slate-700 max-h-[60vh] overflow-y-auto custom-scrollbar">
                             <pre className="text-sm text-slate-300 whitespace-pre-wrap font-sans">{result.content}</pre>
                         </div>
                         {result.sources.length > 0 && (
                             <div>
-                                <h4 className="text-lg font-semibold text-slate-100 mb-2">Sources Used:</h4>
+                                <h4 className="text-lg font-semibold text-slate-100 mb-2">{t("news.sources")}</h4>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {result.sources.map((source, index) => source.web && (
                                         <a

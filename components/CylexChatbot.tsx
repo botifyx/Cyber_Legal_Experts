@@ -1,11 +1,13 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { ChatMessage } from '../types';
-import { createCylexChat, sendCylexMessage, analyzeDocument } from '../services/geminiService';
+import { createCylexChat, sendCylexMessage } from '../services/geminiService';
 import type { Chat } from '@google/genai';
-import { BotIcon, UserIcon, SendIcon, XIcon, MicrophoneIcon, PaperclipIcon, StopCircleIcon } from './icons';
+import { BotIcon, UserIcon, SendIcon, XIcon, MicrophoneIcon, PaperclipIcon, StopCircleIcon, FileTextIcon } from './icons';
+import { useLanguage } from './LanguageContext';
+import { SUPPORTED_LANGUAGES } from '../services/localizationService';
 
 // FIX: Add type definitions for the Speech Recognition API to resolve TypeScript errors.
-// These interfaces describe the shape of the API for browsers that support it.
 interface SpeechRecognitionResult {
   readonly isFinal: boolean;
   readonly [index: number]: SpeechRecognitionAlternative;
@@ -29,6 +31,7 @@ interface SpeechRecognitionEvent extends Event {
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
+  lang: string;
   onresult: (event: SpeechRecognitionEvent) => void;
   start(): void;
   stop(): void;
@@ -56,12 +59,14 @@ const CylexChatbot: React.FC<CylexChatbotProps> = ({ onClose, initialInput }) =>
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [attachedImage, setAttachedImage] = useState<string | null>(null);
-    const [attachedFile, setAttachedFile] = useState<File | null>(null);
+    const [attachedFileMeta, setAttachedFileMeta] = useState<{name: string, type: string} | null>(null);
     const [isRecording, setIsRecording] = useState(false);
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const recognitionRef = useRef<SpeechRecognition | null>(null);
+    
+    const { language, t } = useLanguage();
 
     useEffect(() => {
         if(initialInput) {
@@ -70,10 +75,60 @@ const CylexChatbot: React.FC<CylexChatbotProps> = ({ onClose, initialInput }) =>
     }, [initialInput]);
 
     useEffect(() => {
-        const initChat = () => {
-            const newChat = createCylexChat();
+        const initChat = async () => {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            const dateString = now.toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            let locationInfo = `Timezone: ${timeZone}`;
+            
+            try {
+                if (navigator.geolocation) {
+                     const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 4000 });
+                    });
+                    locationInfo += `, Coordinates: ${position.coords.latitude.toFixed(4)}, ${position.coords.longitude.toFixed(4)}`;
+                }
+            } catch (e) {
+                // ignore geolocation errors, default to timezone info
+                console.debug("Geolocation not available", e);
+            }
+
+            // Detect OS
+            const getOS = () => {
+                const userAgent = window.navigator.userAgent;
+                if (userAgent.indexOf("Win") !== -1) return "Windows";
+                if (userAgent.indexOf("Mac") !== -1) return "MacOS";
+                if (userAgent.indexOf("Linux") !== -1) return "Linux";
+                if (userAgent.indexOf("Android") !== -1) return "Android";
+                if (userAgent.indexOf("like Mac") !== -1) return "iOS";
+                return "Unknown OS";
+            };
+
+            // Detect Device Type
+            const getDeviceType = () => {
+                const userAgent = window.navigator.userAgent;
+                if (/Mobi|Android|iPhone|iPad|iPod/i.test(userAgent)) return "Mobile/Tablet";
+                return "Desktop/Laptop";
+            };
+
+            const langName = SUPPORTED_LANGUAGES.find(l => l.code === language)?.name || 'English';
+
+            const newChat = createCylexChat({
+                location: locationInfo,
+                time: timeString,
+                date: dateString,
+                deviceType: getDeviceType(),
+                operatingSystem: getOS(),
+                language: langName // Pass detected language
+            });
             setChat(newChat);
-            setMessages([{ role: 'model', content: "Hello! I am Cylex, your AI legal assistant. How can I help you today with matters of cyber law? You can also upload an image, a document, or use your voice." }]);
+
+            // Personalized Greeting based on time and language
+            // Note: The AI will likely ignore this hardcoded greeting in the chat history context, 
+            // but we show a UI greeting immediately.
+            setMessages([{ role: 'model', content: t("chat.greeting") }]);
         };
         initChat();
 
@@ -83,6 +138,7 @@ const CylexChatbot: React.FC<CylexChatbotProps> = ({ onClose, initialInput }) =>
             const recognition = new SpeechRecognition();
             recognition.continuous = true;
             recognition.interimResults = true;
+            recognition.lang = language === 'ja' ? 'ja-JP' : language === 'es' ? 'es-ES' : language === 'fr' ? 'fr-FR' : language === 'de' ? 'de-DE' : language === 'pt' ? 'pt-BR' : 'en-US';
             recognition.onresult = (event) => {
                 let finalTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
@@ -93,74 +149,39 @@ const CylexChatbot: React.FC<CylexChatbotProps> = ({ onClose, initialInput }) =>
             recognitionRef.current = recognition;
         }
 
-    }, []);
+    }, [language, t]); // Re-init if language changes
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
     
-    const handleFileAnalysis = useCallback(async (fileToAnalyze: File) => {
-        setIsLoading(true);
-        const reader = new FileReader();
-        reader.onload = async (e) => {
-            const text = e.target?.result as string;
-            if (text) {
-                try {
-                    const result = await analyzeDocument(text);
-                    const analysisMessage: ChatMessage = { role: 'model', content: `Here is the analysis of the document "${fileToAnalyze.name}":\n\n${result}` };
-                    setMessages(prev => [...prev, analysisMessage]);
-                } catch (err) {
-                     const errorMessage: ChatMessage = { role: 'model', content: "Sorry, I encountered an error analyzing that document." };
-                     setMessages(prev => [...prev, errorMessage]);
-                } finally {
-                    setIsLoading(false);
-                }
-            }
-        };
-        reader.readAsText(fileToAnalyze);
-    }, []);
-
 
     const handleSend = useCallback(async () => {
-        if ((!input.trim() && !attachedImage && !attachedFile) || !chat || isLoading) return;
+        if ((!input.trim() && !attachedImage) || !chat || isLoading) return;
 
-        let userMessage: ChatMessage;
-
-        if (attachedFile) {
-            userMessage = { role: 'user', content: `Please analyze this document: ${attachedFile.name}` };
-             setMessages(prev => [...prev, userMessage]);
-             // FIX: The user message should be added before clearing the file state.
-             const fileToAnalyze = attachedFile;
-             setInput('');
-             setAttachedFile(null);
-             handleFileAnalysis(fileToAnalyze);
-             return;
-        } else {
-             userMessage = { role: 'user', content: input, image: attachedImage || undefined };
-        }
-
+        const userMessage: ChatMessage = { role: 'user', content: input, image: attachedImage || undefined };
         setMessages(prev => [...prev, userMessage]);
         
         const messageToSend = input;
-        const imageToSend = attachedImage;
+        const fileDataUrlToSend = attachedImage;
 
         setInput('');
         setAttachedImage(null);
-        setAttachedFile(null);
+        setAttachedFileMeta(null);
         setIsLoading(true);
 
         try {
-            const response = await sendCylexMessage(chat, messageToSend, imageToSend);
+            const response = await sendCylexMessage(chat, messageToSend, fileDataUrlToSend);
             const modelMessage: ChatMessage = { role: 'model', content: response.text };
             setMessages(prev => [...prev, modelMessage]);
         } catch (error) {
             console.error("Failed to send message:", error);
-            const errorMessage: ChatMessage = { role: 'model', content: "Sorry, I encountered an error. Please try again." };
+            const errorMessage: ChatMessage = { role: 'model', content: "Sorry, I encountered an error processing your request. The file might be too large or in an unsupported format." };
             setMessages(prev => [...prev, errorMessage]);
         } finally {
             setIsLoading(false);
         }
-    }, [input, chat, isLoading, attachedImage, attachedFile, handleFileAnalysis]);
+    }, [input, chat, isLoading, attachedImage]);
     
     const handleAttachClick = () => {
         fileInputRef.current?.click();
@@ -169,22 +190,26 @@ const CylexChatbot: React.FC<CylexChatbotProps> = ({ onClose, initialInput }) =>
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            if (file.type.startsWith('image/')) {
+            const isImage = file.type.startsWith('image/');
+            const isText = file.type === 'text/plain' || file.name.endsWith('.md');
+            const isPdf = file.type === 'application/pdf';
+
+            if (isImage || isText || isPdf) {
                 const reader = new FileReader();
                 reader.onloadend = () => {
                     setAttachedImage(reader.result as string);
-                    setAttachedFile(null);
+                    setAttachedFileMeta({ name: file.name, type: file.type });
+                    if (isImage) {
+                        setInput(`What do you see in this image?`);
+                    } else {
+                        setInput(`Please analyze and summarize this document: ${file.name}`);
+                    }
                 };
                 reader.readAsDataURL(file);
-            } else if (file.type === 'text/plain' || file.name.endsWith('.md')) {
-                 setAttachedFile(file);
-                 setAttachedImage(null);
-                 setInput(`Analyze: ${file.name}`); // Pre-fill input
             } else {
-                alert('Unsupported file type. Please upload an image or a .txt/.md file.');
+                alert('Unsupported file type. Please upload an image, .txt, .md, or .pdf file.');
             }
         }
-        // Reset file input value to allow re-uploading the same file
         if (event.target) {
             event.target.value = '';
         }
@@ -202,7 +227,7 @@ const CylexChatbot: React.FC<CylexChatbotProps> = ({ onClose, initialInput }) =>
 
     return (
         <div className="fixed bottom-20 right-6 sm:bottom-6 w-[calc(100%-3rem)] sm:w-full max-w-md h-[70vh] max-h-[600px] flex flex-col bg-slate-800 border border-slate-700 rounded-lg shadow-2xl z-30 origin-bottom-right animate-slide-in">
-            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,.txt,.md" className="hidden" />
+            <input type="file" ref={fileInputRef} onChange={handleFileChange} accept="image/*,.txt,.md,.pdf" className="hidden" />
             <div className="flex items-center justify-between p-3 border-b border-slate-600 bg-slate-800/80 backdrop-blur-sm rounded-t-lg flex-shrink-0">
                 <div className="flex items-center gap-3">
                     <BotIcon className="w-6 h-6 text-cyan-400" />
@@ -219,7 +244,16 @@ const CylexChatbot: React.FC<CylexChatbotProps> = ({ onClose, initialInput }) =>
                             {msg.role === 'model' && <div className="w-8 h-8 flex-shrink-0 bg-cyan-500/20 rounded-full flex items-center justify-center border border-cyan-500/30"><BotIcon className="w-5 h-5 text-cyan-400" /></div>}
                             <div className={`max-w-xs flex flex-col gap-2`}>
                                 <div className={`px-4 py-3 rounded-2xl ${msg.role === 'user' ? 'bg-cyan-600 text-white rounded-br-lg' : 'bg-slate-700 text-slate-200 rounded-bl-lg'}`}>
-                                    {msg.image && <img src={msg.image} alt="user upload" className="rounded-md max-w-full h-auto mb-2" />}
+                                    {msg.image && (
+                                        msg.image.startsWith('data:image') ? (
+                                            <img src={msg.image} alt="user upload" className="rounded-md max-w-full h-auto mb-2" />
+                                        ) : (
+                                            <div className="flex items-center gap-2 p-2 bg-slate-800 rounded-md mb-2">
+                                                <FileTextIcon className="w-5 h-5 text-slate-400" />
+                                                <span className="text-xs text-slate-300">Attached File</span>
+                                            </div>
+                                        )
+                                    )}
                                     {msg.content && <p className="text-sm whitespace-pre-wrap" dangerouslySetInnerHTML={{ __html: msg.content.replace(/\n/g, '<br />') }}></p>}
                                 </div>
                             </div>
@@ -239,21 +273,31 @@ const CylexChatbot: React.FC<CylexChatbotProps> = ({ onClose, initialInput }) =>
                     <div ref={messagesEndRef} />
                 </div>
             </div>
-            <div className="p-3 border-t border-slate-600 flex-shrink-0 space-y-2">
-                {attachedImage && (
-                    <div className="relative w-20 h-20">
-                        <img src={attachedImage} alt="preview" className="w-full h-full object-cover rounded-md border border-slate-600" />
-                        <button onClick={() => setAttachedImage(null)} className="absolute -top-2 -right-2 bg-slate-600 hover:bg-slate-500 text-white rounded-full p-1 shadow-md">
-                           <XIcon className="w-4 h-4" />
-                        </button>
+            <div className="p-3 border-t border-slate-600 flex-shrink-0 space-y-2 relative">
+                {isLoading && (
+                     <div className="absolute -top-6 left-4 flex items-center gap-1.5 text-xs text-slate-400 animate-pulse bg-slate-800/80 px-2 py-1 rounded-t-md border border-slate-700 border-b-0 backdrop-blur-sm">
+                        <div className="w-1.5 h-1.5 bg-cyan-400 rounded-full animate-bounce"></div>
+                        <span>{t("chat.typing")}</span>
                     </div>
                 )}
-                 {attachedFile && (
-                    <div className="relative p-2 bg-slate-700 rounded-md flex items-center gap-2">
-                        <p className="text-sm text-slate-300 truncate">{attachedFile.name}</p>
-                        <button onClick={() => {setAttachedFile(null); setInput('');}} className="text-slate-400 hover:text-white">
-                           <XIcon className="w-4 h-4" />
-                        </button>
+                {attachedImage && attachedFileMeta && (
+                     <div className="relative">
+                        {attachedFileMeta.type.startsWith('image/') ? (
+                            <div className="relative w-20 h-20">
+                                <img src={attachedImage} alt="preview" className="w-full h-full object-cover rounded-md border border-slate-600" />
+                                <button onClick={() => { setAttachedImage(null); setAttachedFileMeta(null); setInput(''); }} className="absolute -top-2 -right-2 bg-slate-600 hover:bg-slate-500 text-white rounded-full p-1 shadow-md">
+                                    <XIcon className="w-4 h-4" />
+                                </button>
+                            </div>
+                        ) : (
+                            <div className="relative p-2 bg-slate-700 rounded-md flex items-center gap-2">
+                                <FileTextIcon className="w-5 h-5 text-slate-400 flex-shrink-0" />
+                                <p className="text-sm text-slate-300 truncate" title={attachedFileMeta.name}>{attachedFileMeta.name}</p>
+                                <button onClick={() => { setAttachedImage(null); setAttachedFileMeta(null); setInput(''); }} className="text-slate-400 hover:text-white flex-shrink-0">
+                                    <XIcon className="w-4 h-4" />
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
                 <div className="flex items-center bg-slate-700 rounded-lg transition-all focus-within:ring-2 focus-within:ring-cyan-500">
@@ -272,7 +316,7 @@ const CylexChatbot: React.FC<CylexChatbotProps> = ({ onClose, initialInput }) =>
                      <button onClick={handleToggleRecording} disabled={isLoading} className={`p-2 rounded-full hover:bg-slate-600 transition-colors ${isRecording ? 'text-red-500' : 'text-slate-300 hover:text-white'}`}>
                         {isRecording ? <StopCircleIcon className="w-5 h-5" /> : <MicrophoneIcon className="w-5 h-5" />}
                     </button>
-                    <button onClick={handleSend} disabled={isLoading || (!input.trim() && !attachedImage && !attachedFile)} className="p-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:text-slate-400 transition-colors rounded-lg ml-1">
+                    <button onClick={handleSend} disabled={isLoading || (!input.trim() && !attachedImage)} className="p-3 bg-cyan-600 hover:bg-cyan-500 disabled:bg-slate-600 disabled:text-slate-400 transition-colors rounded-lg ml-1">
                         <SendIcon className="w-5 h-5 text-white" />
                     </button>
                 </div>

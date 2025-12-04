@@ -1,7 +1,9 @@
+
 import { Blob, LiveServerMessage, LiveSession } from '@google/genai';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { connectCylexVoice } from '../services/geminiService';
 import { BotIcon, LoadingIcon, PodcastIcon, UserIcon, XIcon } from './icons';
+import { useLanguage } from './LanguageContext';
 
 // --- Audio Utility Functions --- //
 function encode(bytes: Uint8Array) {
@@ -53,6 +55,7 @@ interface VoiceConsultationProps {
 const VoiceConsultation: React.FC<VoiceConsultationProps> = ({ onBack }) => {
     const [status, setStatus] = useState<ConnectionStatus>('disconnected');
     const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
+    const { t } = useLanguage();
 
     const sessionPromiseRef = useRef<Promise<LiveSession> | null>(null);
     const mediaStreamRef = useRef<MediaStream | null>(null);
@@ -111,7 +114,7 @@ const VoiceConsultation: React.FC<VoiceConsultationProps> = ({ onBack }) => {
             sessionPromiseRef.current = connectCylexVoice({
                 onopen: () => {
                     setStatus('connected');
-                    setTranscript([{ speaker: 'model', text: 'Cylex is listening...' }]);
+                    setTranscript([{ speaker: 'model', text: t("voice.listening") }]);
 
                     audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 16000 });
                     const source = audioContextRef.current.createMediaStreamSource(stream);
@@ -180,11 +183,11 @@ const VoiceConsultation: React.FC<VoiceConsultationProps> = ({ onBack }) => {
 
     const getStatusIndicator = () => {
         switch (status) {
-            case 'connected': return <div className="flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span className="text-green-400">Connected</span></div>;
-            case 'connecting': return <div className="flex items-center gap-2"><LoadingIcon className="w-4 h-4 text-yellow-400" /> <span className="text-yellow-400">Connecting...</span></div>;
-            case 'error': return <div className="flex items-center gap-2"><div className="w-2 h-2 bg-red-500 rounded-full"></div><span className="text-red-400">Error</span></div>;
+            case 'connected': return <div className="flex items-center gap-2"><div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div><span className="text-green-400">{t("voice.status.connected")}</span></div>;
+            case 'connecting': return <div className="flex items-center gap-2"><LoadingIcon className="w-4 h-4 text-yellow-400" /> <span className="text-yellow-400">{t("voice.status.connecting")}</span></div>;
+            case 'error': return <div className="flex items-center gap-2"><div className="w-2 h-2 bg-red-500 rounded-full"></div><span className="text-red-400">{t("voice.status.error")}</span></div>;
             case 'disconnected':
-            default: return <div className="flex items-center gap-2"><div className="w-2 h-2 bg-slate-500 rounded-full"></div><span className="text-slate-400">Disconnected</span></div>;
+            default: return <div className="flex items-center gap-2"><div className="w-2 h-2 bg-slate-500 rounded-full"></div><span className="text-slate-400">{t("voice.status.disconnected")}</span></div>;
         }
     };
 
@@ -193,11 +196,11 @@ const VoiceConsultation: React.FC<VoiceConsultationProps> = ({ onBack }) => {
              <div className="flex justify-between items-center mb-6">
                 <div className="text-left">
                     <PodcastIcon className="h-12 w-12 text-cyan-400" />
-                    <h2 className="mt-2 text-2xl font-semibold text-slate-100">AI Voice Consultation</h2>
-                    <p className="mt-1 text-sm text-slate-400">Speak directly with Cylex for a hands-free consultation.</p>
+                    <h2 className="mt-2 text-2xl font-semibold text-slate-100">{t("voice.title")}</h2>
+                    <p className="mt-1 text-sm text-slate-400">{t("voice.subtitle")}</p>
                 </div>
                 <button onClick={onBack} className="text-sm font-semibold text-cyan-400 hover:text-cyan-300">
-                    &larr; Back to Hub
+                    &larr; {t("voice.back")}
                 </button>
             </div>
             
@@ -205,9 +208,9 @@ const VoiceConsultation: React.FC<VoiceConsultationProps> = ({ onBack }) => {
                 <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-700">
                     {getStatusIndicator()}
                     {status === 'disconnected' || status === 'error' ? (
-                        <button onClick={handleStartConsultation} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg">Start Consultation</button>
+                        <button onClick={handleStartConsultation} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg">{t("voice.btn.start")}</button>
                     ) : (
-                        <button onClick={stopConsultation} className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-lg">End Consultation</button>
+                        <button onClick={stopConsultation} className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-lg">{t("voice.btn.end")}</button>
                     )}
                 </div>
 
@@ -223,7 +226,7 @@ const VoiceConsultation: React.FC<VoiceConsultationProps> = ({ onBack }) => {
                     ))}
                     <div ref={transcriptEndRef} />
                 </div>
-                <p className="text-xs text-slate-500 mt-2 text-center">This is a live consultation. Your microphone is active when connected.</p>
+                <p className="text-xs text-slate-500 mt-2 text-center">{t("voice.live.disclaimer")}</p>
             </div>
         </div>
     );

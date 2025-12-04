@@ -1,14 +1,17 @@
+
 import React, { useState } from 'react';
 import FeatureCard from './FeatureCard';
 import { PodcastIcon, QuizIcon, MailIcon, BotIcon } from './icons';
 import VoiceConsultation from './VoiceConsultation';
 import CyberLawQuiz from './CyberLawQuiz';
 import NewsletterGenerator from './NewsletterGenerator';
+import { useLanguage } from './LanguageContext';
 
 type SubView = 'hub' | 'voice' | 'quiz' | 'newsletter';
 
 const EngagementHub: React.FC = () => {
     const [activeSubView, setActiveSubView] = useState<SubView>('hub');
+    const { t } = useLanguage();
 
     const renderSubView = () => {
         switch (activeSubView) {
@@ -24,28 +27,31 @@ const EngagementHub: React.FC = () => {
                     <div className="w-full">
                         <div className="text-center mb-12">
                             <BotIcon className="mx-auto h-12 w-12 text-cyan-400" />
-                            <h2 className="mt-2 text-3xl font-bold text-slate-100">Engagement Hub</h2>
+                            <h2 className="mt-2 text-3xl font-bold text-slate-100">{t("engage.title")}</h2>
                             <p className="max-w-2xl mx-auto text-slate-400 mt-2">
-                                Interact with our advanced AI tools in new and exciting ways.
+                                {t("engage.subtitle")}
                             </p>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <FeatureCard
+                                index={0}
                                 icon={<PodcastIcon className="w-8 h-8" />}
-                                title="Voice Consultation"
-                                description="Engage in a real-time, hands-free voice conversation with our Cylex AI assistant."
+                                title={t("engage.voice.title")}
+                                description={t("engage.voice.desc")}
                                 onClick={() => setActiveSubView('voice')}
                             />
                             <FeatureCard
+                                index={1}
                                 icon={<QuizIcon className="w-8 h-8" />}
-                                title="Are You Cyber Law Smart?"
-                                description="Test your knowledge with our AI-generated quiz on the latest in cyber law and data privacy."
+                                title={t("engage.quiz.title")}
+                                description={t("engage.quiz.desc")}
                                 onClick={() => setActiveSubView('quiz')}
                             />
                             <FeatureCard
+                                index={2}
                                 icon={<MailIcon className="w-8 h-8" />}
-                                title="AI Legal Newsletter"
-                                description="Generate a personalized legal newsletter with the latest updates for your specific region."
+                                title={t("engage.news.title")}
+                                description={t("engage.news.desc")}
                                 onClick={() => setActiveSubView('newsletter')}
                             />
                         </div>

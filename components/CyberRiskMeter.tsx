@@ -1,7 +1,10 @@
+
 import React, { useState, useCallback } from 'react';
 import { assessCyberRisk } from '../services/geminiService';
 import { CyberRiskAssessment, IdentifiedRisk } from '../types';
 import { GaugeIcon, LoadingIcon, AlertTriangleIcon, ListChecksIcon } from './icons';
+import { useLanguage } from './LanguageContext';
+import { SUPPORTED_LANGUAGES } from '../services/localizationService';
 
 // --- Sub-component for the Gauge --- //
 interface GaugeProps {
@@ -51,6 +54,7 @@ const CyberRiskMeter: React.FC = () => {
     const [result, setResult] = useState<CyberRiskAssessment | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const { t, language } = useLanguage();
 
     const handleAssess = useCallback(async () => {
         if (!input.trim()) {
@@ -63,14 +67,15 @@ const CyberRiskMeter: React.FC = () => {
         setError('');
 
         try {
-            const assessment = await assessCyberRisk(input);
+            const langName = SUPPORTED_LANGUAGES.find(l => l.code === language)?.name || 'English';
+            const assessment = await assessCyberRisk(input, langName);
             setResult(assessment);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred during assessment.');
         } finally {
             setIsLoading(false);
         }
-    }, [input]);
+    }, [input, language]);
 
     const getRiskStyling = (level: CyberRiskAssessment['riskLevel']) => {
         switch (level) {
@@ -101,8 +106,8 @@ const CyberRiskMeter: React.FC = () => {
         <div className="max-w-7xl w-full mx-auto p-4 sm:p-6 bg-slate-800/50 border border-slate-700 rounded-lg shadow-2xl">
             <div className="text-center mb-6">
                 <GaugeIcon className="mx-auto h-12 w-12 text-cyan-400" />
-                <h2 className="mt-2 text-2xl font-semibold text-slate-100">AI Cyber Risk Meter</h2>
-                <p className="mt-1 text-sm text-slate-400">Paste your privacy policy, terms of service, or contract text below for a risk assessment.</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-100">{t("riskmeter.title")}</h2>
+                <p className="mt-1 text-sm text-slate-400">{t("riskmeter.subtitle")}</p>
             </div>
 
             <div className="max-w-3xl mx-auto space-y-4 mb-6">
@@ -110,7 +115,7 @@ const CyberRiskMeter: React.FC = () => {
                     rows={8}
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
-                    placeholder="Paste text here..."
+                    placeholder={t("riskmeter.placeholder")}
                     className="w-full bg-slate-700 text-slate-200 placeholder-slate-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-cyan-500 custom-scrollbar"
                 />
                 <div className="text-center">
@@ -119,7 +124,7 @@ const CyberRiskMeter: React.FC = () => {
                         disabled={isLoading}
                         className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed flex items-center justify-center w-full sm:w-auto mx-auto"
                     >
-                        {isLoading ? <LoadingIcon className="w-5 h-5" /> : 'Assess Risk'}
+                        {isLoading ? <LoadingIcon className="w-5 h-5" /> : t("riskmeter.btn")}
                     </button>
                 </div>
             </div>
@@ -128,11 +133,11 @@ const CyberRiskMeter: React.FC = () => {
             
             {result && (
                 <div className="mt-8">
-                    <h3 className="text-xl font-semibold text-slate-100 mb-6 text-center">Risk Assessment Results</h3>
+                    <h3 className="text-xl font-semibold text-slate-100 mb-6 text-center">{t("riskmeter.results")}</h3>
                     <div className="flex flex-col lg:flex-row items-center justify-center gap-8 mb-8 p-6 bg-slate-900 rounded-lg border border-slate-700">
                         <Gauge score={result.riskScore} />
                         <div className="text-center lg:text-left">
-                            <p className="text-lg text-slate-300">Overall Risk Level:</p>
+                            <p className="text-lg text-slate-300">{t("riskmeter.level")}</p>
                             <p 
                                 className={`text-3xl font-bold px-3 py-1 rounded-md inline-block border transition-all ${getRiskStyling(result.riskLevel).classNames}`}
                                 style={getRiskStyling(result.riskLevel).styles}
@@ -151,7 +156,7 @@ const CyberRiskMeter: React.FC = () => {
                                        <AlertTriangleIcon className="w-5 h-5 text-red-400"/>
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-red-400">Identified Risk</h4>
+                                        <h4 className="font-semibold text-red-400">{t("riskmeter.risk")}</h4>
                                         <p className="text-sm text-slate-300">{item.risk}</p>
                                     </div>
                                 </div>
@@ -160,7 +165,7 @@ const CyberRiskMeter: React.FC = () => {
                                         <ListChecksIcon className="w-5 h-5 text-green-400"/>
                                     </div>
                                     <div>
-                                        <h4 className="font-semibold text-green-400">Recommendation</h4>
+                                        <h4 className="font-semibold text-green-400">{t("riskmeter.rec")}</h4>
                                         <p className="text-sm text-slate-300">{item.recommendation}</p>
                                     </div>
                                 </div>

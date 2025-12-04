@@ -1,7 +1,10 @@
+
 import React, { useState, useCallback } from 'react';
 import { generateQuizQuestions } from '../services/geminiService';
 import { QuizQuestion } from '../types';
 import { LoadingIcon, QuizIcon } from './icons';
+import { useLanguage } from './LanguageContext';
+import { SUPPORTED_LANGUAGES } from '../services/localizationService';
 
 interface CyberLawQuizProps {
     onBack: () => void;
@@ -16,12 +19,14 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
     const [score, setScore] = useState(0);
     const [isAnswered, setIsAnswered] = useState(false);
     const [isQuizFinished, setIsQuizFinished] = useState(false);
+    const { t, language } = useLanguage();
 
     const handleStartQuiz = useCallback(async () => {
         setIsLoading(true);
         setError('');
         try {
-            const questions = await generateQuizQuestions();
+            const langName = SUPPORTED_LANGUAGES.find(l => l.code === language)?.name || 'English';
+            const questions = await generateQuizQuestions(langName);
             setQuiz(questions);
             setIsQuizFinished(false);
             setCurrentQuestionIndex(0);
@@ -33,7 +38,7 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
         } finally {
             setIsLoading(false);
         }
-    }, []);
+    }, [language]);
     
     const handleAnswerSelect = (answerIndex: number) => {
         if (isAnswered) return;
@@ -65,7 +70,7 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
             return (
                 <div className="flex flex-col items-center justify-center h-64">
                     <LoadingIcon className="w-12 h-12 text-cyan-400" />
-                    <p className="mt-4 text-slate-300">Generating your quiz...</p>
+                    <p className="mt-4 text-slate-300">{t("quiz.loading")}</p>
                 </div>
             );
         }
@@ -77,9 +82,9 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
         if (isQuizFinished) {
             return (
                  <div className="text-center">
-                    <h3 className="text-2xl font-bold text-slate-100">Quiz Complete!</h3>
-                    <p className="mt-2 text-lg text-slate-300">You scored <span className="text-cyan-400 font-bold">{score}</span> out of <span className="font-bold">{quiz.length}</span></p>
-                    <button onClick={handlePlayAgain} className="mt-6 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg">Play Again</button>
+                    <h3 className="text-2xl font-bold text-slate-100">{t("quiz.complete")}</h3>
+                    <p className="mt-2 text-lg text-slate-300">{t("quiz.score")} <span className="text-cyan-400 font-bold">{score}</span> {t("quiz.of")} <span className="font-bold">{quiz.length}</span></p>
+                    <button onClick={handlePlayAgain} className="mt-6 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg">{t("quiz.play_again")}</button>
                 </div>
             )
         }
@@ -88,7 +93,7 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
             const question = quiz[currentQuestionIndex];
             return (
                 <div>
-                    <p className="text-sm text-slate-400 mb-2">Question {currentQuestionIndex + 1} of {quiz.length}</p>
+                    <p className="text-sm text-slate-400 mb-2">{t("quiz.question_count")} {currentQuestionIndex + 1} {t("quiz.of")} {quiz.length}</p>
                     <h3 className="text-lg font-semibold text-slate-100 mb-6">{question.question}</h3>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {question.options.map((option, index) => {
@@ -118,11 +123,11 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
                     </div>
                     {isAnswered && (
                         <div className="mt-6 p-4 bg-slate-800 rounded-lg border border-slate-700">
-                            <h4 className="font-bold text-cyan-400">Explanation:</h4>
+                            <h4 className="font-bold text-cyan-400">{t("quiz.explanation")}</h4>
                             <p className="mt-1 text-sm text-slate-300">{question.explanation}</p>
                             <div className="text-right mt-4">
                                 <button onClick={handleNextQuestion} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg">
-                                    {currentQuestionIndex < quiz.length - 1 ? 'Next Question' : 'Finish Quiz'}
+                                    {currentQuestionIndex < quiz.length - 1 ? t("quiz.next") : t("quiz.finish")}
                                 </button>
                             </div>
                         </div>
@@ -133,9 +138,9 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
 
         return (
              <div className="text-center">
-                <h3 className="text-xl font-bold text-slate-100">Ready to test your knowledge?</h3>
-                <p className="mt-2 text-slate-400">Get a unique, AI-generated quiz on cyber law.</p>
-                <button onClick={handleStartQuiz} className="mt-6 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg">Start Quiz</button>
+                <h3 className="text-xl font-bold text-slate-100">{t("quiz.start_prompt")}</h3>
+                <p className="mt-2 text-slate-400">{t("quiz.start_desc")}</p>
+                <button onClick={handleStartQuiz} className="mt-6 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg">{t("quiz.start_btn")}</button>
             </div>
         );
     };
@@ -145,11 +150,11 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
              <div className="flex justify-between items-center mb-6">
                 <div className="text-left">
                     <QuizIcon className="h-12 w-12 text-cyan-400" />
-                    <h2 className="mt-2 text-2xl font-semibold text-slate-100">Are You Cyber Law Smart?</h2>
-                    <p className="mt-1 text-sm text-slate-400">A gamified quiz to test your cyber law expertise.</p>
+                    <h2 className="mt-2 text-2xl font-semibold text-slate-100">{t("quiz.title")}</h2>
+                    <p className="mt-1 text-sm text-slate-400">{t("quiz.subtitle")}</p>
                 </div>
                  <button onClick={onBack} className="text-sm font-semibold text-cyan-400 hover:text-cyan-300">
-                    &larr; Back to Hub
+                    &larr; {t("quiz.back")}
                 </button>
             </div>
              <div className="bg-slate-900 border border-slate-700 rounded-lg p-6 min-h-[30rem] flex items-center justify-center">

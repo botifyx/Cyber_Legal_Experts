@@ -1,13 +1,17 @@
+
 import React, { useState, useCallback } from 'react';
 import { predictPrecedent } from '../services/geminiService';
 import { PrecedentPrediction, PredictedOutcome } from '../types';
 import { ScaleIcon, LoadingIcon, GavelIcon, BookOpenIcon, LightbulbIcon } from './icons';
+import { useLanguage } from './LanguageContext';
+import { SUPPORTED_LANGUAGES } from '../services/localizationService';
 
 // --- Sub-component for Outcome Card --- //
 interface OutcomeCardProps {
     outcome: PredictedOutcome;
+    t: (key: string) => string;
 }
-const OutcomeCard: React.FC<OutcomeCardProps> = ({ outcome }) => {
+const OutcomeCard: React.FC<OutcomeCardProps> = ({ outcome, t }) => {
     const getConfidenceColor = (score: PredictedOutcome['confidenceScore']) => {
         switch (score) {
             case 'High': return 'text-green-400';
@@ -22,12 +26,12 @@ const OutcomeCard: React.FC<OutcomeCardProps> = ({ outcome }) => {
             <div className="flex justify-between items-start">
                 <h4 className="font-semibold text-slate-100">{outcome.outcome}</h4>
                 <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-slate-700 ${getConfidenceColor(outcome.confidenceScore)}`}>
-                    {outcome.confidenceScore} Confidence
+                    {outcome.confidenceScore} {t("predictor.confidence")}
                 </span>
             </div>
             <div>
                 <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-medium text-cyan-400">Likelihood</span>
+                    <span className="text-xs font-medium text-cyan-400">{t("predictor.likelihood")}</span>
                     <span className="text-sm font-semibold text-slate-200">{outcome.likelihoodPercentage}%</span>
                 </div>
                 <div className="w-full bg-slate-700 rounded-full h-2">
@@ -48,6 +52,7 @@ const PrecedentPredictor: React.FC = () => {
     const [prediction, setPrediction] = useState<PrecedentPrediction | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const { t, language } = useLanguage();
 
     const handlePredict = useCallback(async () => {
         if (!caseDetails.trim()) {
@@ -60,21 +65,22 @@ const PrecedentPredictor: React.FC = () => {
         setError('');
 
         try {
-            const result = await predictPrecedent(caseDetails);
+            const langName = SUPPORTED_LANGUAGES.find(l => l.code === language)?.name || 'English';
+            const result = await predictPrecedent(caseDetails, langName);
             setPrediction(result);
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An unknown error occurred.');
         } finally {
             setIsLoading(false);
         }
-    }, [caseDetails]);
+    }, [caseDetails, language]);
 
     return (
         <div className="max-w-7xl w-full mx-auto p-4 sm:p-6 bg-slate-800/50 border border-slate-700 rounded-lg shadow-2xl">
             <div className="text-center mb-6">
                 <ScaleIcon className="mx-auto h-12 w-12 text-cyan-400" />
-                <h2 className="mt-2 text-2xl font-semibold text-slate-100">AI Precedent Predictor</h2>
-                <p className="mt-1 text-sm text-slate-400">Analyze your case against historical data to predict likely outcomes and strategies.</p>
+                <h2 className="mt-2 text-2xl font-semibold text-slate-100">{t("predictor.title")}</h2>
+                <p className="mt-1 text-sm text-slate-400">{t("predictor.subtitle")}</p>
             </div>
 
             <div className="max-w-3xl mx-auto space-y-4 mb-6">
@@ -82,7 +88,7 @@ const PrecedentPredictor: React.FC = () => {
                     rows={8}
                     value={caseDetails}
                     onChange={(e) => setCaseDetails(e.target.value)}
-                    placeholder="Describe your case here. Include key facts, parties involved, and the legal questions at hand..."
+                    placeholder={t("predictor.placeholder")}
                     className="w-full bg-slate-700 text-slate-200 placeholder-slate-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-cyan-500 custom-scrollbar"
                 />
                 <div className="text-center">
@@ -91,7 +97,7 @@ const PrecedentPredictor: React.FC = () => {
                         disabled={isLoading}
                         className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed flex items-center justify-center w-full sm:w-auto mx-auto"
                     >
-                        {isLoading ? <LoadingIcon className="w-5 h-5" /> : 'Predict Outcome'}
+                        {isLoading ? <LoadingIcon className="w-5 h-5" /> : t("predictor.btn")}
                     </button>
                 </div>
             </div>
@@ -100,17 +106,17 @@ const PrecedentPredictor: React.FC = () => {
 
             {prediction && (
                 <div className="mt-8">
-                    <h3 className="text-xl font-semibold text-slate-100 mb-6 text-center">Prediction Dashboard</h3>
+                    <h3 className="text-xl font-semibold text-slate-100 mb-6 text-center">{t("predictor.dashboard")}</h3>
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         {/* Left Column: Outcomes */}
                         <div className="space-y-6">
                             <div className="flex items-center gap-3">
                                 <GavelIcon className="w-6 h-6 text-cyan-400" />
-                                <h4 className="text-lg font-semibold text-cyan-400">Predicted Outcomes</h4>
+                                <h4 className="text-lg font-semibold text-cyan-400">{t("predictor.outcomes")}</h4>
                             </div>
                             <div className="space-y-4">
                                 {prediction.predictedOutcomes.map((outcome, index) => (
-                                    <OutcomeCard key={index} outcome={outcome} />
+                                    <OutcomeCard key={index} outcome={outcome} t={t} />
                                 ))}
                             </div>
                         </div>
@@ -120,7 +126,7 @@ const PrecedentPredictor: React.FC = () => {
                             <div>
                                 <div className="flex items-center gap-3 mb-4">
                                     <BookOpenIcon className="w-6 h-6 text-cyan-400" />
-                                    <h4 className="text-lg font-semibold text-cyan-400">Key Legal Sections</h4>
+                                    <h4 className="text-lg font-semibold text-cyan-400">{t("predictor.sections")}</h4>
                                 </div>
                                 <div className="space-y-3">
                                     {prediction.keyLegalSections.map((item, index) => (
@@ -134,7 +140,7 @@ const PrecedentPredictor: React.FC = () => {
                              <div>
                                 <div className="flex items-center gap-3 mb-4">
                                     <LightbulbIcon className="w-6 h-6 text-cyan-400" />
-                                    <h4 className="text-lg font-semibold text-cyan-400">Suggested Strategies</h4>
+                                    <h4 className="text-lg font-semibold text-cyan-400">{t("predictor.strategies")}</h4>
                                 </div>
                                 <div className="space-y-3">
                                      {prediction.suggestedStrategies.map((item, index) => (
@@ -147,7 +153,7 @@ const PrecedentPredictor: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <p className="text-xs text-slate-500 mt-6 text-center">Disclaimer: This is an AI-generated prediction for informational purposes only and does not constitute legal advice.</p>
+                    <p className="text-xs text-slate-500 mt-6 text-center">{t("copilot.disclaimer")}</p>
                 </div>
             )}
         </div>

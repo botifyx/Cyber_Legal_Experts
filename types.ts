@@ -1,3 +1,4 @@
+
 import { GroundingChunk } from '@google/genai';
 
 export type ChatRole = 'user' | 'model';
@@ -106,3 +107,14 @@ export interface QuizQuestion {
 }
 
 export type Quiz = QuizQuestion[];
+
+// Types for Legal Templates
+export type TemplateCategory = 'Data Privacy' | 'Intellectual Property' | 'Contracts & Agreements';
+
+export interface LegalTemplate {
+  id: number;
+  title: string;
+  description: string;
+  category: TemplateCategory;
+  content: string;
+}
