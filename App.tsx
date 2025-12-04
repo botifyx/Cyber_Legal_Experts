@@ -38,19 +38,19 @@ const AppContent: React.FC = () => {
     ];
 
     const threatTickerItems = [
-        "Active Phishing Campaign Targeting Financial Institutions Detected.",
-        "New Zero-Day Exploit Found in Widely Used Server Software.",
-        "Ransomware Attack Disrupts Major Healthcare Provider.",
-        "Data Breach Exposes Personal Information of 1M+ Users.",
-        "Warning Issued for State-Sponsored Espionage Malware."
+        t("ticker.threat.1"),
+        t("ticker.threat.2"),
+        t("ticker.threat.3"),
+        t("ticker.threat.4"),
+        t("ticker.threat.5")
     ];
 
     const caseInsightsTickerItems = [
-        "Supreme Court Rules on Digital Privacy in Cloud Computing.",
-        "New Precedent Set for IP Theft in a Cross-Border Data Case.",
-        "Landmark GDPR Fine Issued for Non-Compliance.",
-        "Analysis: Recent Ruling on AI-generated Content Copyright.",
-        "Legal Tech Trends: Predictive Analytics in Litigation."
+        t("ticker.insight.1"),
+        t("ticker.insight.2"),
+        t("ticker.insight.3"),
+        t("ticker.insight.4"),
+        t("ticker.insight.5")
     ];
 
     useEffect(() => {

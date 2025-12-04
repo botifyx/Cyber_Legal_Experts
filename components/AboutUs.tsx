@@ -4,20 +4,20 @@ import { TimelineMilestone } from '../types';
 import { BotIcon, GavelIcon, LogoIcon, ChevronDownIcon } from './icons';
 import { useLanguage } from './LanguageContext';
 
-const MOCK_TIMELINE: TimelineMilestone[] = [
-    { year: "1986", title: "Computer Fraud and Abuse Act (CFAA)", description: "The first major US legislation addressing computer crime, setting a foundational legal framework for hacking.", type: "law" },
-    { year: "1997", title: "Deep Blue defeats Garry Kasparov", description: "IBM's chess computer's victory marked a major milestone in AI's ability to tackle complex strategic tasks.", type: "ai" },
-    { year: "2000", title: "E-SIGN Act", description: "Legitimized electronic signatures in the US, crucial for the growth of digital commerce and contracts.", type: "law" },
-    { year: "2012", title: "AlexNet wins ImageNet", description: "A deep learning model that revolutionized computer vision and kickstarted the modern AI boom.", type: "ai" },
-    { year: "2016", title: "General Data Protection Regulation (GDPR)", description: "The EU enacted the GDPR, establishing a new global standard for data privacy and user rights.", type: "law" },
-    { year: "2017", title: "Transformers Architecture", description: "Google researchers publish 'Attention Is All You Need', introducing the transformer architecture that powers modern LLMs.", type: "ai" },
-    { year: "2018", title: "CLOUD Act", description: "US law allowing federal law enforcement to compel tech companies to provide requested data stored on servers regardless of location.", type: "law" },
-    { year: "2022", title: "Launch of ChatGPT", description: "OpenAI's release of ChatGPT brought generative AI into the mainstream, demonstrating its powerful capabilities to the public.", type: "ai" },
-];
-
 const AboutUs: React.FC = () => {
     const { t } = useLanguage();
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+
+    const MOCK_TIMELINE: TimelineMilestone[] = [
+        { year: "1986", title: t("about.t.1986.title"), description: t("about.t.1986.desc"), type: "law" },
+        { year: "1997", title: t("about.t.1997.title"), description: t("about.t.1997.desc"), type: "ai" },
+        { year: "2000", title: t("about.t.2000.title"), description: t("about.t.2000.desc"), type: "law" },
+        { year: "2012", title: t("about.t.2012.title"), description: t("about.t.2012.desc"), type: "ai" },
+        { year: "2016", title: t("about.t.2016.title"), description: t("about.t.2016.desc"), type: "law" },
+        { year: "2017", title: t("about.t.2017.title"), description: t("about.t.2017.desc"), type: "ai" },
+        { year: "2018", title: t("about.t.2018.title"), description: t("about.t.2018.desc"), type: "law" },
+        { year: "2022", title: t("about.t.2022.title"), description: t("about.t.2022.desc"), type: "ai" },
+    ];
 
     const toggleItem = (index: number) => {
         setExpandedIndex(expandedIndex === index ? null : index);

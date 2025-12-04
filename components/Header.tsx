@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import type { ActiveView } from '../App';
-import { LogoIcon, GlobeIcon } from './icons';
+import { LogoIcon } from './icons';
 import { useLanguage } from './LanguageContext';
 import { SUPPORTED_LANGUAGES } from '../services/localizationService';
 
@@ -9,23 +9,6 @@ interface HeaderProps {
     activeView: ActiveView;
     setActiveView: (view: ActiveView) => void;
 }
-
-const NavButton: React.FC<{
-    label: string;
-    isActive: boolean;
-    onClick: () => void;
-}> = ({ label, isActive, onClick }) => (
-    <button
-        onClick={onClick}
-        className={`px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 ${
-            isActive 
-            ? 'bg-slate-700 text-white' 
-            : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-        }`}
-    >
-        {label}
-    </button>
-);
 
 const Header: React.FC<HeaderProps> = ({ activeView, setActiveView }) => {
     const [isToolsMenuOpen, setIsToolsMenuOpen] = useState(false);
@@ -59,53 +42,88 @@ const Header: React.FC<HeaderProps> = ({ activeView, setActiveView }) => {
 
     const currentLangFlag = SUPPORTED_LANGUAGES.find(l => l.code === language)?.flag || '🌐';
 
+    // Helper to generate consistent classes for nav items
+    const getNavClass = (isActive: boolean, isDropdownItem = false) => {
+        const baseClass = "transition-all duration-200 font-medium rounded-md flex items-center justify-start";
+        const layoutClass = isDropdownItem ? "w-full px-3 py-2 text-sm" : "px-3 py-2 text-sm";
+        
+        // AI/Tech aesthetic for active state: Cyan glow, semi-transparent background, border
+        const activeStyle = "bg-cyan-950/60 text-cyan-400 border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.15)]";
+        const inactiveStyle = "text-slate-300 hover:bg-slate-800 hover:text-white border border-transparent";
+
+        return `${baseClass} ${layoutClass} ${isActive ? activeStyle : inactiveStyle}`;
+    };
+
     return (
-        <header className="bg-slate-900/80 backdrop-blur-sm sticky top-0 z-20 border-b border-slate-800">
+        <header className="bg-slate-900/80 backdrop-blur-sm sticky top-0 z-50 border-b border-slate-800">
             <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between h-16">
                     <div className="flex items-center">
-                        <button onClick={() => setActiveView('home')} className="flex-shrink-0 flex items-center gap-2 text-white">
-                            <LogoIcon className="h-8 w-8 text-cyan-400" />
-                            <span className="font-bold text-lg hidden sm:inline">Cyber Legal Experts</span>
+                        <button onClick={() => setActiveView('home')} className="flex-shrink-0 flex items-center gap-2 text-white group">
+                            <LogoIcon className="h-8 w-8 text-cyan-400 group-hover:rotate-12 transition-transform duration-300" />
+                            <span className="font-bold text-lg hidden sm:inline bg-clip-text text-transparent bg-gradient-to-r from-white to-slate-400">Cyber Legal Experts</span>
                         </button>
                     </div>
                     <div className="hidden md:flex items-center space-x-1">
-                        <NavButton label={t("nav.home")} isActive={activeView === 'home'} onClick={() => setActiveView('home')} />
-                        <NavButton label={t("nav.templates")} isActive={activeView === 'templates'} onClick={() => setActiveView('templates')} />
-                        <NavButton label={t("nav.knowledge")} isActive={activeView === 'knowledgehub'} onClick={() => setActiveView('knowledgehub')} />
-                        <NavButton label={t("nav.insights")} isActive={activeView === 'insights'} onClick={() => setActiveView('insights')} />
-                        <NavButton label={t("nav.labs")} isActive={activeView === 'labs'} onClick={() => setActiveView('labs')} />
+                        <button className={getNavClass(activeView === 'home')} onClick={() => setActiveView('home')}>
+                            {t("nav.home")}
+                        </button>
+                        <button className={getNavClass(activeView === 'templates')} onClick={() => setActiveView('templates')}>
+                            {t("nav.templates")}
+                        </button>
+                        <button className={getNavClass(activeView === 'knowledgehub')} onClick={() => setActiveView('knowledgehub')}>
+                            {t("nav.knowledge")}
+                        </button>
+                        <button className={getNavClass(activeView === 'insights')} onClick={() => setActiveView('insights')}>
+                            {t("nav.insights")}
+                        </button>
+                        <button className={getNavClass(activeView === 'labs')} onClick={() => setActiveView('labs')}>
+                            {t("nav.labs")}
+                        </button>
                         
+                        {/* Tools Dropdown */}
                         <div className="relative" ref={dropdownRef}>
-                            <NavButton label={t("nav.tools")} isActive={isToolsActive} onClick={() => setIsToolsMenuOpen(prev => !prev)} />
+                            <button 
+                                className={getNavClass(isToolsActive)} 
+                                onClick={() => setIsToolsMenuOpen(prev => !prev)}
+                            >
+                                {t("nav.tools")}
+                                <svg className={`ml-1 w-4 h-4 transition-transform duration-200 ${isToolsMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </button>
                             {isToolsMenuOpen && (
-                                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-slate-800 border border-slate-700 rounded-md shadow-lg animate-slide-down-menu">
-                                    <div className="p-1">
-                                        <a onClick={() => handleToolSelect('predictor')} className="block w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-md cursor-pointer">{t("tool.predictor")}</a>
-                                        <a onClick={() => handleToolSelect('riskmeter')} className="block w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-md cursor-pointer">{t("tool.riskmeter")}</a>
-                                        <a onClick={() => handleToolSelect('casedna')} className="block w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-md cursor-pointer">{t("tool.casedna")}</a>
-                                        <a onClick={() => handleToolSelect('analyzer')} className="block w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-md cursor-pointer">{t("tool.analyzer")}</a>
-                                        <a onClick={() => handleToolSelect('summarizer')} className="block w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-md cursor-pointer">{t("tool.summarizer")}</a>
-                                        <a onClick={() => handleToolSelect('copilot')} className="block w-full text-left px-3 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-md cursor-pointer">{t("tool.copilot")}</a>
+                                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 w-56 bg-slate-900 border border-slate-700 rounded-lg shadow-xl animate-slide-down-menu overflow-hidden z-50">
+                                    <div className="p-1 space-y-0.5">
+                                        <button onClick={() => handleToolSelect('predictor')} className={getNavClass(activeView === 'predictor', true)}>{t("tool.predictor")}</button>
+                                        <button onClick={() => handleToolSelect('riskmeter')} className={getNavClass(activeView === 'riskmeter', true)}>{t("tool.riskmeter")}</button>
+                                        <button onClick={() => handleToolSelect('casedna')} className={getNavClass(activeView === 'casedna', true)}>{t("tool.casedna")}</button>
+                                        <button onClick={() => handleToolSelect('analyzer')} className={getNavClass(activeView === 'analyzer', true)}>{t("tool.analyzer")}</button>
+                                        <button onClick={() => handleToolSelect('summarizer')} className={getNavClass(activeView === 'summarizer', true)}>{t("tool.summarizer")}</button>
+                                        <button onClick={() => handleToolSelect('copilot')} className={getNavClass(activeView === 'copilot', true)}>{t("tool.copilot")}</button>
                                     </div>
                                 </div>
                             )}
                         </div>
                         
-                        <NavButton label={t("nav.engage")} isActive={activeView === 'engage'} onClick={() => setActiveView('engage')} />
-                        <NavButton label={t("nav.about")} isActive={activeView === 'about'} onClick={() => setActiveView('about')} />
+                        <button className={getNavClass(activeView === 'engage')} onClick={() => setActiveView('engage')}>
+                            {t("nav.engage")}
+                        </button>
+                        <button className={getNavClass(activeView === 'about')} onClick={() => setActiveView('about')}>
+                            {t("nav.about")}
+                        </button>
 
                         {/* Language Selector */}
                         <div className="relative ml-2" ref={langDropdownRef}>
                             <button 
                                 onClick={() => setIsLangMenuOpen(prev => !prev)}
-                                className="px-3 py-2 rounded-md text-sm font-medium text-slate-300 hover:bg-slate-800 hover:text-white flex items-center gap-1"
+                                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1 ${isLangMenuOpen ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
                             >
                                 <span className="text-lg">{currentLangFlag}</span>
                             </button>
                             {isLangMenuOpen && (
-                                <div className="absolute top-full right-0 mt-2 w-32 bg-slate-800 border border-slate-700 rounded-md shadow-lg animate-slide-down-menu">
-                                    <div className="p-1">
+                                <div className="absolute top-full right-0 mt-2 w-40 bg-slate-900 border border-slate-700 rounded-lg shadow-xl animate-slide-down-menu overflow-hidden z-50">
+                                    <div className="p-1 space-y-0.5">
                                         {SUPPORTED_LANGUAGES.map(lang => (
                                             <button
                                                 key={lang.code}
@@ -113,9 +131,9 @@ const Header: React.FC<HeaderProps> = ({ activeView, setActiveView }) => {
                                                     setLanguage(lang.code);
                                                     setIsLangMenuOpen(false);
                                                 }}
-                                                className={`w-full text-left px-3 py-2 text-sm rounded-md cursor-pointer flex items-center gap-2 ${language === lang.code ? 'bg-cyan-900/50 text-cyan-400' : 'text-slate-300 hover:bg-slate-700'}`}
+                                                className={`w-full text-left px-3 py-2 text-sm rounded-md cursor-pointer flex items-center gap-3 transition-colors ${language === lang.code ? 'bg-cyan-950/60 text-cyan-400 border border-cyan-500/30' : 'text-slate-300 hover:bg-slate-800 border border-transparent'}`}
                                             >
-                                                <span>{lang.flag}</span>
+                                                <span className="text-base">{lang.flag}</span>
                                                 <span>{lang.name}</span>
                                             </button>
                                         ))}
