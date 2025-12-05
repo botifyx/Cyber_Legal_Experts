@@ -40,7 +40,7 @@ const Header: React.FC<HeaderProps> = ({ activeView, setActiveView }) => {
         setIsToolsMenuOpen(false);
     };
 
-    const isToolsActive = ['predictor', 'riskmeter', 'casedna', 'analyzer', 'summarizer', 'copilot'].includes(activeView);
+    const isToolsActive = ['predictor', 'riskmeter', 'casedna', 'analyzer', 'summarizer', 'copilot', 'sentry'].includes(activeView);
 
     const currentLangFlag = SUPPORTED_LANGUAGES.find(l => l.code === language)?.flag || '🌐';
 
@@ -87,6 +87,7 @@ const Header: React.FC<HeaderProps> = ({ activeView, setActiveView }) => {
                         {/* Tools Dropdown */}
                         <div className="relative" ref={dropdownRef}>
                             <button 
+                                id="nav-tools"
                                 className={getNavClass(isToolsActive)} 
                                 onClick={() => setIsToolsMenuOpen(prev => !prev)}
                             >
@@ -99,6 +100,7 @@ const Header: React.FC<HeaderProps> = ({ activeView, setActiveView }) => {
                                 <div className="absolute top-full left-0 mt-2 w-72 bg-slate-900 border border-slate-700 rounded-lg shadow-xl animate-slide-down-menu overflow-hidden z-50 origin-top-left">
                                     <div className="p-1 space-y-0.5">
                                         <button onClick={() => handleToolSelect('predictor')} className={getNavClass(activeView === 'predictor', true)}>{t("tool.predictor")}</button>
+                                        <button onClick={() => handleToolSelect('sentry')} className={getNavClass(activeView === 'sentry', true)}>{t("tool.sentry")}</button>
                                         <button onClick={() => handleToolSelect('riskmeter')} className={getNavClass(activeView === 'riskmeter', true)}>{t("tool.riskmeter")}</button>
                                         <button onClick={() => handleToolSelect('casedna')} className={getNavClass(activeView === 'casedna', true)}>{t("tool.casedna")}</button>
                                         <button onClick={() => handleToolSelect('analyzer')} className={getNavClass(activeView === 'analyzer', true)}>{t("tool.analyzer")}</button>
@@ -116,42 +118,45 @@ const Header: React.FC<HeaderProps> = ({ activeView, setActiveView }) => {
                             {t("nav.about")}
                         </button>
 
-                         {/* Theme Toggle */}
-                         <button 
-                            onClick={toggleMode}
-                            className="p-2 ml-2 rounded-md text-slate-300 hover:bg-slate-800 hover:text-white transition-colors border border-transparent"
-                            title={mode === 'default' ? "Switch to Deep Dark Mode" : "Switch to Default Mode"}
-                        >
-                            {mode === 'default' ? <MoonIcon className="w-5 h-5" /> : <SunIcon className="w-5 h-5 text-yellow-400" />}
-                        </button>
-
-                        {/* Language Selector */}
-                        <div className="relative ml-1" ref={langDropdownRef}>
+                         {/* Theme and Language Settings Container */}
+                         <div id="nav-settings" className="flex items-center">
+                            {/* Theme Toggle */}
                             <button 
-                                onClick={() => setIsLangMenuOpen(prev => !prev)}
-                                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1 ${isLangMenuOpen ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                                onClick={toggleMode}
+                                className="p-2 ml-2 rounded-md text-slate-300 hover:bg-slate-800 hover:text-white transition-colors border border-transparent"
+                                title={mode === 'default' ? "Switch to Deep Dark Mode" : "Switch to Default Mode"}
                             >
-                                <span className="text-lg">{currentLangFlag}</span>
+                                {mode === 'default' ? <MoonIcon className="w-5 h-5" /> : <SunIcon className="w-5 h-5 text-yellow-400" />}
                             </button>
-                            {isLangMenuOpen && (
-                                <div className="absolute top-full right-0 mt-2 w-40 bg-slate-900 border border-slate-700 rounded-lg shadow-xl animate-slide-down-menu overflow-hidden z-50">
-                                    <div className="p-1 space-y-0.5">
-                                        {SUPPORTED_LANGUAGES.map(lang => (
-                                            <button
-                                                key={lang.code}
-                                                onClick={() => {
-                                                    setLanguage(lang.code);
-                                                    setIsLangMenuOpen(false);
-                                                }}
-                                                className={`w-full text-left px-3 py-2 text-sm rounded-md cursor-pointer flex items-center gap-3 transition-colors ${language === lang.code ? 'bg-[rgba(var(--primary-rgb),0.1)] text-dynamic border border-[color:var(--primary-color)]' : 'text-slate-300 hover:bg-slate-800 border border-transparent'}`}
-                                            >
-                                                <span className="text-base">{lang.flag}</span>
-                                                <span>{lang.name}</span>
-                                            </button>
-                                        ))}
+
+                            {/* Language Selector */}
+                            <div className="relative ml-1" ref={langDropdownRef}>
+                                <button 
+                                    onClick={() => setIsLangMenuOpen(prev => !prev)}
+                                    className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1 ${isLangMenuOpen ? 'bg-slate-800 text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'}`}
+                                >
+                                    <span className="text-lg">{currentLangFlag}</span>
+                                </button>
+                                {isLangMenuOpen && (
+                                    <div className="absolute top-full right-0 mt-2 w-40 bg-slate-900 border border-slate-700 rounded-lg shadow-xl animate-slide-down-menu overflow-hidden z-50">
+                                        <div className="p-1 space-y-0.5">
+                                            {SUPPORTED_LANGUAGES.map(lang => (
+                                                <button
+                                                    key={lang.code}
+                                                    onClick={() => {
+                                                        setLanguage(lang.code);
+                                                        setIsLangMenuOpen(false);
+                                                    }}
+                                                    className={`w-full text-left px-3 py-2 text-sm rounded-md cursor-pointer flex items-center gap-3 transition-colors ${language === lang.code ? 'bg-[rgba(var(--primary-rgb),0.1)] text-dynamic border border-[color:var(--primary-color)]' : 'text-slate-300 hover:bg-slate-800 border border-transparent'}`}
+                                                >
+                                                    <span className="text-base">{lang.flag}</span>
+                                                    <span>{lang.name}</span>
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>

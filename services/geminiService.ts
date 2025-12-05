@@ -1,5 +1,6 @@
+
 import { GoogleGenAI, Chat, GenerateContentResponse, GroundingChunk, Part, Type, Modality, LiveCallbacks, LiveConnectRequest } from '@google/genai';
-import { CaseDna, CyberRiskAssessment, PrecedentPrediction, Quiz } from '../types';
+import { CaseDna, CyberRiskAssessment, PrecedentPrediction, Quiz, ContractAudit } from '../types';
 
 // FIX: Per coding guidelines, the API key must be obtained exclusively from `process.env.API_KEY`.
 // The conditional check and fallback API key have been removed.
@@ -307,6 +308,50 @@ export const predictPrecedent = async (caseDetails: string, language: string = '
     throw new Error("An error occurred during the precedent prediction. Please try again.");
   }
 };
+
+export const auditSmartContract = async (code: string, language: string = 'English'): Promise<ContractAudit> => {
+    const prompt = `Act as a senior blockchain security and legal auditor. Analyze the following Smart Contract code (Solidity, Rust, or Python). Identify security vulnerabilities (like Re-entrancy, Integer Overflow, Access Control) and potential legal risks (e.g., regulatory compliance, financial liability). Provide a structured JSON response in ${language}. Code:\n\n---\n\n${code}`;
+  
+    try {
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-pro',
+        contents: prompt,
+        config: {
+          thinkingConfig: { thinkingBudget: 32768 },
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              securityScore: { type: Type.NUMBER, description: "0-100 Security Score" },
+              vulnerabilities: {
+                  type: Type.ARRAY,
+                  items: {
+                      type: Type.OBJECT,
+                      properties: {
+                          name: { type: Type.STRING },
+                          line: { type: Type.INTEGER, description: "Line number if applicable, else 0" },
+                          severity: { type: Type.STRING, enum: ["Critical", "High", "Medium", "Low"] },
+                          description: { type: Type.STRING, description: `Description in ${language}` }
+                      },
+                      required: ["name", "severity", "description"]
+                  }
+              },
+              legalRisks: { type: Type.ARRAY, items: { type: Type.STRING }, description: `Legal risks in ${language}` },
+              summary: { type: Type.STRING, description: `Executive summary in ${language}` }
+            },
+            required: ["securityScore", "vulnerabilities", "legalRisks", "summary"]
+          },
+        },
+      });
+  
+      const jsonString = response.text;
+      return JSON.parse(jsonString) as ContractAudit;
+  
+    } catch (error) {
+      console.error("Error auditing smart contract:", error);
+      throw new Error("An error occurred during the smart contract audit. Please try again.");
+    }
+  };
 
 export const summarizeArticle = async (articleContent: string): Promise<string> => {
     const prompt = `Summarize the following article in three concise bullet points. Article:\n\n---\n\n${articleContent}`;

@@ -8,6 +8,7 @@ import LegalCopilot from './components/LegalCopilot';
 import CaseDnaAnalyzer from './components/CaseDnaAnalyzer';
 import CyberRiskMeter from './components/CyberRiskMeter';
 import PrecedentPredictor from './components/PrecedentPredictor';
+import SmartContractSentry from './components/SmartContractSentry';
 import CyberLawInsights from './components/CyberLawInsights';
 import AiLabs from './components/AiLabs';
 import AboutUs from './components/AboutUs';
@@ -20,8 +21,9 @@ import MatrixBackground from './components/MatrixBackground';
 import Ticker from './components/Ticker';
 import { LanguageProvider, useLanguage } from './components/LanguageContext';
 import { ThemeProvider } from './components/ThemeContext';
+import OnboardingTour from './components/OnboardingTour';
 
-export type ActiveView = 'home' | 'analyzer' | 'summarizer' | 'copilot' | 'casedna' | 'riskmeter' | 'predictor' | 'insights' | 'labs' | 'about' | 'engage' | 'knowledgehub' | 'templates';
+export type ActiveView = 'home' | 'analyzer' | 'summarizer' | 'copilot' | 'casedna' | 'riskmeter' | 'predictor' | 'sentry' | 'insights' | 'labs' | 'about' | 'engage' | 'knowledgehub' | 'templates';
 
 const AppContent: React.FC = () => {
     const [activeView, setActiveView] = useState<ActiveView>('home');
@@ -85,6 +87,8 @@ const AppContent: React.FC = () => {
                 return <CyberRiskMeter />;
             case 'predictor':
                 return <PrecedentPredictor />;
+            case 'sentry':
+                return <SmartContractSentry />;
             case 'insights':
                 return <CyberLawInsights onAskAI={handleOpenChat} />;
             case 'labs':
@@ -147,10 +151,10 @@ const AppContent: React.FC = () => {
                                 />
                                  <FeatureCard
                                     index={1}
-                                    icon={<GaugeIcon />}
-                                    title={t("tool.riskmeter")}
-                                    description={t("tool.riskmeter.desc")}
-                                    onClick={() => setActiveView('riskmeter')}
+                                    icon={<ShieldCheckIcon />}
+                                    title={t("tool.sentry")}
+                                    description={t("tool.sentry.desc")}
+                                    onClick={() => setActiveView('sentry')}
                                 />
                                 <FeatureCard
                                     index={2}
@@ -222,6 +226,7 @@ const AppContent: React.FC = () => {
             {/* Chat Widget */}
             {!isChatOpen ? (
                 <button 
+                    id="fab-chat"
                     onClick={() => handleOpenChat()}
                     className="fixed bottom-6 right-6 bg-dynamic hover:opacity-90 text-white p-4 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 z-20"
                     aria-label="Open Cylex AI Assistant"
@@ -231,6 +236,8 @@ const AppContent: React.FC = () => {
             ) : (
                 <CylexChatbot onClose={handleCloseChat} initialInput={chatInitialInput} />
             )}
+
+            <OnboardingTour />
         </div>
     );
 };

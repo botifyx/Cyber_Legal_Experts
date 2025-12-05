@@ -85,6 +85,22 @@ export interface PrecedentPrediction {
   suggestedStrategies: SuggestedStrategy[];
 }
 
+// Types for Smart Contract Sentry
+export interface Vulnerability {
+    name: string;
+    line?: number;
+    severity: 'Critical' | 'High' | 'Medium' | 'Low';
+    description: string;
+}
+
+export interface ContractAudit {
+    securityScore: number;
+    vulnerabilities: Vulnerability[];
+    legalRisks: string[];
+    summary: string;
+}
+
+
 // Types for Cyber Law Insights
 export interface Article {
   id: number;

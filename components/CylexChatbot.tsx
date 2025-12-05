@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { ChatMessage, ChatAttachment, SavedChat } from '../types';
 import { createCylexChat, sendCylexMessage } from '../services/geminiService';
 import type { Chat } from '@google/genai';
-import { BotIcon, UserIcon, SendIcon, XIcon, MicrophoneIcon, PaperclipIcon, StopCircleIcon, FileTextIcon, SaveIcon, HistoryIcon, TrashIcon, LoadingIcon } from './icons';
+import { BotIcon, UserIcon, SendIcon, XIcon, MicrophoneIcon, PaperclipIcon, StopCircleIcon, FileTextIcon, SaveIcon, HistoryIcon, TrashIcon, LoadingIcon, CalendarIcon, ChatBubbleIcon } from './icons';
 import { useLanguage } from './LanguageContext';
 import { SUPPORTED_LANGUAGES } from '../services/localizationService';
 
@@ -380,37 +381,68 @@ const CylexChatbot: React.FC<CylexChatbotProps> = ({ onClose, initialInput }) =>
 
             {/* History View Overlay */}
             {showHistory ? (
-                <div className="flex-grow bg-slate-800 p-4 overflow-y-auto custom-scrollbar">
-                     <h3 className="text-slate-200 font-semibold mb-4 flex items-center gap-2">
-                        <HistoryIcon className="w-5 h-5" /> {t("chat.history")}
-                    </h3>
+                <div className="flex-grow bg-slate-900/50 p-4 overflow-y-auto custom-scrollbar">
+                     <div className="sticky top-0 bg-slate-900/90 backdrop-blur-sm pb-4 pt-1 z-10 border-b border-slate-800 mb-4 flex justify-between items-center">
+                        <h3 className="text-slate-100 font-semibold flex items-center gap-2">
+                            <HistoryIcon className="w-5 h-5 text-dynamic" /> 
+                            {t("chat.history")}
+                        </h3>
+                        <span className="text-xs text-slate-500">{savedChats.length} {savedChats.length === 1 ? 'note' : 'notes'}</span>
+                    </div>
+
                     {savedChats.length === 0 ? (
-                        <p className="text-slate-500 text-sm text-center mt-10">{t("chat.no_notes")}</p>
+                        <div className="flex flex-col items-center justify-center h-40 text-slate-500 opacity-60">
+                            <HistoryIcon className="w-12 h-12 mb-2 stroke-1" />
+                            <p className="text-sm">{t("chat.no_notes")}</p>
+                        </div>
                     ) : (
-                        <div className="space-y-3">
+                        <div className="grid grid-cols-1 gap-3">
                             {savedChats.map(note => (
-                                <div key={note.id} className="bg-slate-700/50 p-3 rounded-lg border border-slate-600 hover:border-[color:var(--primary-color)] transition-colors group">
-                                    <div className="flex justify-between items-start mb-1">
-                                        <h4 className="font-medium text-slate-200 truncate pr-2">{note.title}</h4>
-                                        <span className="text-[10px] text-slate-500 whitespace-nowrap">{note.date}</span>
-                                    </div>
-                                    <p className="text-xs text-slate-400 truncate mb-3">
-                                        {note.messages.length > 0 ? note.messages[note.messages.length - 1].content.substring(0, 50) + "..." : "No content"}
-                                    </p>
-                                    <div className="flex gap-2">
-                                        <button 
-                                            onClick={() => handleLoadNote(note)}
-                                            className="flex-1 bg-slate-600 hover:bg-[color:var(--secondary-color)] text-white text-xs py-1.5 rounded transition-colors"
-                                        >
-                                            {t("chat.load")}
-                                        </button>
-                                        <button 
-                                            onClick={() => handleDeleteNote(note.id)}
-                                            className="px-2 bg-slate-600 hover:bg-red-500/80 text-white text-xs py-1.5 rounded transition-colors"
+                                <div 
+                                    key={note.id} 
+                                    className="group relative bg-slate-800 border border-slate-700 rounded-lg p-4 cursor-pointer hover:border-[color:var(--primary-color)] hover:shadow-lg transition-all duration-200 overflow-hidden"
+                                    onClick={() => handleLoadNote(note)}
+                                >
+                                    {/* Hover Gradient Overlay */}
+                                    <div className="absolute inset-0 bg-gradient-to-r from-[rgba(var(--primary-rgb),0.1)] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                                    
+                                    <div className="relative z-10 flex justify-between items-start">
+                                        <div className="flex-1 min-w-0 pr-8">
+                                            <h4 className="font-semibold text-slate-200 truncate group-hover:text-dynamic transition-colors">
+                                                {note.title}
+                                            </h4>
+                                            <div className="flex items-center gap-2 text-[10px] text-slate-500 mt-1 mb-2">
+                                                 <span className="flex items-center gap-1">
+                                                    <CalendarIcon className="w-3 h-3" />
+                                                    {note.date}
+                                                 </span>
+                                                 <span>•</span>
+                                                 <span className="flex items-center gap-1">
+                                                     <ChatBubbleIcon className="w-3 h-3" />
+                                                     {note.messages.length} msgs
+                                                 </span>
+                                            </div>
+                                            <p className="text-xs text-slate-400 line-clamp-2 leading-relaxed">
+                                                {note.messages.find(m => m.role === 'model')?.content || "No content preview"}
+                                            </p>
+                                        </div>
+
+                                         <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteNote(note.id);
+                                            }}
+                                            className="absolute top-0 right-0 p-2 text-slate-500 hover:text-red-400 hover:bg-slate-700/50 rounded-lg transition-colors"
                                             title={t("chat.delete")}
                                         >
                                             <TrashIcon className="w-4 h-4" />
                                         </button>
+                                    </div>
+                                    
+                                    <div className="relative z-10 mt-3 flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                         <span className="text-xs font-medium text-dynamic flex items-center gap-1">
+                                            {t("chat.load")} &rarr;
+                                         </span>
                                     </div>
                                 </div>
                             ))}
