@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useCallback } from 'react';
 import type { Article } from '../types';
 import { summarizeArticle, generateSpeech } from '../services/geminiService';
@@ -87,15 +86,9 @@ const CyberLawInsights: React.FC<CyberLawInsightsProps> = ({ onAskAI }) => {
         }
     }, []);
 
-    const handlePlayAudio = useCallback(async (articleId: number, text: string) => {
-        if (audioSourceRef.current) {
-            audioSourceRef.current.stop();
-            audioSourceRef.current = null;
-        }
-
-        setLoadingAudio(articleId);
+    const playAudio = async (text: string) => {
         try {
-            if (!audioContextRef.current) {
+             if (!audioContextRef.current) {
                 audioContextRef.current = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
             }
             const audioData = await generateSpeech(text);
@@ -107,11 +100,22 @@ const CyberLawInsights: React.FC<CyberLawInsightsProps> = ({ onAskAI }) => {
                 source.start();
                 audioSourceRef.current = source;
             }
-        } catch (error) {
-            console.error("Error playing audio:", error);
-        } finally {
-            setLoadingAudio(null);
+        } catch(e) {
+            console.error("Audio playback failed", e);
         }
+    }
+
+    const handlePlayAudio = useCallback(async (articleId: number, text: string) => {
+        if (audioSourceRef.current) {
+            try {
+                audioSourceRef.current.stop();
+            } catch(e) { /* ignore */ }
+            audioSourceRef.current = null;
+        }
+
+        setLoadingAudio(articleId);
+        await playAudio(text);
+        setLoadingAudio(null);
     }, []);
 
     const handleAskAI = (article: Article) => {
@@ -122,7 +126,7 @@ const CyberLawInsights: React.FC<CyberLawInsightsProps> = ({ onAskAI }) => {
     return (
         <div className="max-w-5xl w-full mx-auto p-4 sm:p-6 bg-slate-800/50 border border-slate-700 rounded-lg shadow-2xl">
             <div className="text-center mb-8">
-                <NewspaperIcon className="mx-auto h-12 w-12 text-cyan-400" />
+                <NewspaperIcon className="mx-auto h-12 w-12 text-dynamic" />
                 <h2 className="mt-2 text-3xl font-bold text-slate-100">{t("insights.title")}</h2>
                 <p className="mt-2 text-md text-slate-400">{t("insights.subtitle")}</p>
             </div>
@@ -130,7 +134,7 @@ const CyberLawInsights: React.FC<CyberLawInsightsProps> = ({ onAskAI }) => {
             <div className="space-y-8">
                 {MOCK_ARTICLES.map(article => (
                     <article key={article.id} className="p-6 bg-slate-900 rounded-lg border border-slate-700">
-                        <h3 className="text-xl font-semibold text-cyan-400">{article.title}</h3>
+                        <h3 className="text-xl font-semibold text-dynamic">{article.title}</h3>
                         <p className="text-xs text-slate-500 mt-1">By {article.author} on {article.date}</p>
                         <p className="mt-3 text-sm text-slate-300">{article.snippet}</p>
                         
@@ -143,14 +147,14 @@ const CyberLawInsights: React.FC<CyberLawInsightsProps> = ({ onAskAI }) => {
                                         <button 
                                             onClick={() => handlePlayAudio(article.id, summaries[article.id])}
                                             disabled={loadingAudio === article.id}
-                                            className="flex items-center gap-2 text-xs text-cyan-400 hover:text-cyan-300 disabled:text-slate-500 disabled:cursor-wait"
+                                            className="flex items-center gap-2 text-xs text-dynamic hover:opacity-80 disabled:text-slate-500 disabled:cursor-wait"
                                         >
                                             {loadingAudio === article.id ? <LoadingIcon className="w-4 h-4" /> : <SpeakerOnIcon className="w-4 h-4" />}
                                             <span>{loadingAudio === article.id ? 'Generating...' : t("insights.listen")}</span>
                                         </button>
                                         <button 
                                             onClick={() => handleAskAI(article)}
-                                            className="flex items-center gap-2 text-xs text-cyan-400 hover:text-cyan-300"
+                                            className="flex items-center gap-2 text-xs text-dynamic hover:opacity-80"
                                         >
                                             <BotIcon className="w-4 h-4" />
                                             <span>{t("insights.ask")}</span>
@@ -164,7 +168,7 @@ const CyberLawInsights: React.FC<CyberLawInsightsProps> = ({ onAskAI }) => {
                              <button 
                                 onClick={() => handleSummarize(article)}
                                 disabled={loadingSummary === article.id}
-                                className="mt-4 text-sm font-semibold text-white bg-cyan-600 hover:bg-cyan-500 px-4 py-2 rounded-md disabled:bg-slate-600 flex items-center gap-2"
+                                className="mt-4 text-sm font-semibold text-white bg-[color:var(--secondary-color)] hover:bg-[color:var(--primary-color)] px-4 py-2 rounded-md disabled:bg-slate-600 flex items-center gap-2"
                              >
                                  {loadingSummary === article.id ? <LoadingIcon className="w-5 h-5"/> : null}
                                  <span>{loadingSummary === article.id ? t("insights.generating") : t("insights.generate")}</span>

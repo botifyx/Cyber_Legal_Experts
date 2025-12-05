@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { generateQuizQuestions } from '../services/geminiService';
 import { QuizQuestion } from '../types';
@@ -69,7 +68,7 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
         if (isLoading) {
             return (
                 <div className="flex flex-col items-center justify-center h-64">
-                    <LoadingIcon className="w-12 h-12 text-cyan-400" />
+                    <LoadingIcon className="w-12 h-12 text-dynamic" />
                     <p className="mt-4 text-slate-300">{t("quiz.loading")}</p>
                 </div>
             );
@@ -83,8 +82,8 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
             return (
                  <div className="text-center">
                     <h3 className="text-2xl font-bold text-slate-100">{t("quiz.complete")}</h3>
-                    <p className="mt-2 text-lg text-slate-300">{t("quiz.score")} <span className="text-cyan-400 font-bold">{score}</span> {t("quiz.of")} <span className="font-bold">{quiz.length}</span></p>
-                    <button onClick={handlePlayAgain} className="mt-6 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg">{t("quiz.play_again")}</button>
+                    <p className="mt-2 text-lg text-slate-300">{t("quiz.score")} <span className="text-dynamic font-bold">{score}</span> {t("quiz.of")} <span className="font-bold">{quiz.length}</span></p>
+                    <button onClick={handlePlayAgain} className="mt-6 bg-[color:var(--secondary-color)] hover:bg-[color:var(--primary-color)] text-white font-bold py-2 px-6 rounded-lg">{t("quiz.play_again")}</button>
                 </div>
             )
         }
@@ -123,10 +122,10 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
                     </div>
                     {isAnswered && (
                         <div className="mt-6 p-4 bg-slate-800 rounded-lg border border-slate-700">
-                            <h4 className="font-bold text-cyan-400">{t("quiz.explanation")}</h4>
+                            <h4 className="font-bold text-dynamic">{t("quiz.explanation")}</h4>
                             <p className="mt-1 text-sm text-slate-300">{question.explanation}</p>
                             <div className="text-right mt-4">
-                                <button onClick={handleNextQuestion} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg">
+                                <button onClick={handleNextQuestion} className="bg-[color:var(--secondary-color)] hover:bg-[color:var(--primary-color)] text-white font-bold py-2 px-4 rounded-lg">
                                     {currentQuestionIndex < quiz.length - 1 ? t("quiz.next") : t("quiz.finish")}
                                 </button>
                             </div>
@@ -140,7 +139,7 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
              <div className="text-center">
                 <h3 className="text-xl font-bold text-slate-100">{t("quiz.start_prompt")}</h3>
                 <p className="mt-2 text-slate-400">{t("quiz.start_desc")}</p>
-                <button onClick={handleStartQuiz} className="mt-6 bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg">{t("quiz.start_btn")}</button>
+                <button onClick={handleStartQuiz} className="mt-6 bg-[color:var(--secondary-color)] hover:bg-[color:var(--primary-color)] text-white font-bold py-2 px-6 rounded-lg">{t("quiz.start_btn")}</button>
             </div>
         );
     };
@@ -149,11 +148,11 @@ const CyberLawQuiz: React.FC<CyberLawQuizProps> = ({ onBack }) => {
          <div className="max-w-4xl w-full mx-auto">
              <div className="flex justify-between items-center mb-6">
                 <div className="text-left">
-                    <QuizIcon className="h-12 w-12 text-cyan-400" />
+                    <QuizIcon className="h-12 w-12 text-dynamic" />
                     <h2 className="mt-2 text-2xl font-semibold text-slate-100">{t("quiz.title")}</h2>
                     <p className="mt-1 text-sm text-slate-400">{t("quiz.subtitle")}</p>
                 </div>
-                 <button onClick={onBack} className="text-sm font-semibold text-cyan-400 hover:text-cyan-300">
+                 <button onClick={onBack} className="text-sm font-semibold text-dynamic hover:opacity-80">
                     &larr; {t("quiz.back")}
                 </button>
             </div>

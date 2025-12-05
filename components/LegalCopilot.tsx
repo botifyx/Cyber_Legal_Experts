@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { generateLegalActionPlan } from '../services/geminiService';
 import { CompassIcon, LoadingIcon } from './icons';
@@ -37,7 +36,7 @@ const LegalCopilot: React.FC = () => {
     return (
         <div className="max-w-4xl mx-auto p-6 bg-slate-800/50 border border-slate-700 rounded-lg shadow-2xl">
             <div className="text-center mb-6">
-                <CompassIcon className="mx-auto h-12 w-12 text-cyan-400" />
+                <CompassIcon className="mx-auto h-12 w-12 text-dynamic" />
                 <h2 className="mt-2 text-2xl font-semibold text-slate-100">{t("copilot.title")}</h2>
                 <p className="mt-1 text-sm text-slate-400">{t("copilot.subtitle")}</p>
             </div>
@@ -52,7 +51,7 @@ const LegalCopilot: React.FC = () => {
                     value={caseDetails}
                     onChange={(e) => setCaseDetails(e.target.value)}
                     placeholder={t("copilot.placeholder")}
-                    className="w-full bg-slate-700 text-slate-200 placeholder-slate-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-cyan-500 custom-scrollbar"
+                    className="w-full bg-slate-700 text-slate-200 placeholder-slate-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-color)] custom-scrollbar"
                 />
             </div>
             
@@ -60,7 +59,7 @@ const LegalCopilot: React.FC = () => {
                  <button
                     onClick={handleGeneratePlan}
                     disabled={isLoading}
-                    className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed flex items-center justify-center w-full sm:w-auto mx-auto"
+                    className="bg-[color:var(--secondary-color)] hover:bg-[color:var(--primary-color)] text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed flex items-center justify-center w-full sm:w-auto mx-auto"
                 >
                     {isLoading ? <LoadingIcon className="w-5 h-5"/> : t("copilot.btn")}
                 </button>

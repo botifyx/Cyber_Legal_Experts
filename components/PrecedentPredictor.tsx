@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { predictPrecedent } from '../services/geminiService';
 import { PrecedentPrediction, PredictedOutcome } from '../types';
@@ -31,12 +30,12 @@ const OutcomeCard: React.FC<OutcomeCardProps> = ({ outcome, t }) => {
             </div>
             <div>
                 <div className="flex justify-between items-center mb-1">
-                    <span className="text-xs font-medium text-cyan-400">{t("predictor.likelihood")}</span>
+                    <span className="text-xs font-medium text-dynamic">{t("predictor.likelihood")}</span>
                     <span className="text-sm font-semibold text-slate-200">{outcome.likelihoodPercentage}%</span>
                 </div>
                 <div className="w-full bg-slate-700 rounded-full h-2">
                     <div
-                        className="bg-cyan-500 h-2 rounded-full"
+                        className="bg-[color:var(--primary-color)] h-2 rounded-full"
                         style={{ width: `${outcome.likelihoodPercentage}%`, transition: 'width 0.5s ease-in-out' }}
                     ></div>
                 </div>
@@ -78,7 +77,7 @@ const PrecedentPredictor: React.FC = () => {
     return (
         <div className="max-w-7xl w-full mx-auto p-4 sm:p-6 bg-slate-800/50 border border-slate-700 rounded-lg shadow-2xl">
             <div className="text-center mb-6">
-                <ScaleIcon className="mx-auto h-12 w-12 text-cyan-400" />
+                <ScaleIcon className="mx-auto h-12 w-12 text-dynamic" />
                 <h2 className="mt-2 text-2xl font-semibold text-slate-100">{t("predictor.title")}</h2>
                 <p className="mt-1 text-sm text-slate-400">{t("predictor.subtitle")}</p>
             </div>
@@ -89,13 +88,13 @@ const PrecedentPredictor: React.FC = () => {
                     value={caseDetails}
                     onChange={(e) => setCaseDetails(e.target.value)}
                     placeholder={t("predictor.placeholder")}
-                    className="w-full bg-slate-700 text-slate-200 placeholder-slate-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-cyan-500 custom-scrollbar"
+                    className="w-full bg-slate-700 text-slate-200 placeholder-slate-400 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-[color:var(--primary-color)] custom-scrollbar"
                 />
                 <div className="text-center">
                     <button
                         onClick={handlePredict}
                         disabled={isLoading}
-                        className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed flex items-center justify-center w-full sm:w-auto mx-auto"
+                        className="bg-[color:var(--secondary-color)] hover:bg-[color:var(--primary-color)] text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed flex items-center justify-center w-full sm:w-auto mx-auto"
                     >
                         {isLoading ? <LoadingIcon className="w-5 h-5" /> : t("predictor.btn")}
                     </button>
@@ -111,8 +110,8 @@ const PrecedentPredictor: React.FC = () => {
                         {/* Left Column: Outcomes */}
                         <div className="space-y-6">
                             <div className="flex items-center gap-3">
-                                <GavelIcon className="w-6 h-6 text-cyan-400" />
-                                <h4 className="text-lg font-semibold text-cyan-400">{t("predictor.outcomes")}</h4>
+                                <GavelIcon className="w-6 h-6 text-dynamic" />
+                                <h4 className="text-lg font-semibold text-dynamic">{t("predictor.outcomes")}</h4>
                             </div>
                             <div className="space-y-4">
                                 {prediction.predictedOutcomes.map((outcome, index) => (
@@ -125,8 +124,8 @@ const PrecedentPredictor: React.FC = () => {
                         <div className="space-y-8">
                             <div>
                                 <div className="flex items-center gap-3 mb-4">
-                                    <BookOpenIcon className="w-6 h-6 text-cyan-400" />
-                                    <h4 className="text-lg font-semibold text-cyan-400">{t("predictor.sections")}</h4>
+                                    <BookOpenIcon className="w-6 h-6 text-dynamic" />
+                                    <h4 className="text-lg font-semibold text-dynamic">{t("predictor.sections")}</h4>
                                 </div>
                                 <div className="space-y-3">
                                     {prediction.keyLegalSections.map((item, index) => (
@@ -139,8 +138,8 @@ const PrecedentPredictor: React.FC = () => {
                             </div>
                              <div>
                                 <div className="flex items-center gap-3 mb-4">
-                                    <LightbulbIcon className="w-6 h-6 text-cyan-400" />
-                                    <h4 className="text-lg font-semibold text-cyan-400">{t("predictor.strategies")}</h4>
+                                    <LightbulbIcon className="w-6 h-6 text-dynamic" />
+                                    <h4 className="text-lg font-semibold text-dynamic">{t("predictor.strategies")}</h4>
                                 </div>
                                 <div className="space-y-3">
                                      {prediction.suggestedStrategies.map((item, index) => (

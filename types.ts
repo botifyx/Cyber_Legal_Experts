@@ -3,10 +3,23 @@ import { GroundingChunk } from '@google/genai';
 
 export type ChatRole = 'user' | 'model';
 
+export interface ChatAttachment {
+  name: string;
+  type: string;
+  data: string; // Base64 data URL
+}
+
 export interface ChatMessage {
   role: ChatRole;
   content: string;
-  image?: string; // Optional base64 data URL for images
+  attachments?: ChatAttachment[];
+}
+
+export interface SavedChat {
+    id: string;
+    title: string;
+    date: string;
+    messages: ChatMessage[];
 }
 
 export interface GroundingSource extends GroundingChunk {

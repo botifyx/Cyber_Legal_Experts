@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { LegalTemplate, TemplateCategory } from '../types';
 import { FileSignatureIcon, XIcon, BotIcon, ClipboardCopyIcon, CheckIcon } from './icons';
@@ -38,7 +37,7 @@ const TemplateModal: React.FC<TemplateModalProps> = ({ template, onClose, onCust
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex items-center justify-between p-4 border-b border-slate-600 flex-shrink-0">
-                    <h3 className="text-lg font-semibold text-cyan-400">{template.title}</h3>
+                    <h3 className="text-lg font-semibold text-dynamic">{template.title}</h3>
                     <button onClick={onClose} className="p-1 rounded-full text-slate-400 hover:bg-slate-700 hover:text-white transition-colors">
                         <XIcon className="w-5 h-5" />
                     </button>
@@ -51,7 +50,7 @@ const TemplateModal: React.FC<TemplateModalProps> = ({ template, onClose, onCust
                         {copied ? <CheckIcon className="w-5 h-5 text-green-400"/> : <ClipboardCopyIcon className="w-5 h-5"/>}
                         {copied ? t("templates.copied") : t("templates.copy")}
                     </button>
-                    <button onClick={handleCustomize} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
+                    <button onClick={handleCustomize} className="bg-[color:var(--secondary-color)] hover:bg-[color:var(--primary-color)] text-white font-bold py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
                         <BotIcon className="w-5 h-5"/>
                         <span>{t("templates.customize")}</span>
                     </button>
@@ -98,6 +97,34 @@ const Templates: React.FC<TemplatesProps> = ({ onCustomize }) => {
             description: t("templates.t4.desc"),
             category: "Data Privacy",
             content: t("templates.t4.content")
+        },
+        {
+            id: 5,
+            title: t("templates.t5.title"),
+            description: t("templates.t5.desc"),
+            category: "Contracts & Agreements",
+            content: t("templates.t5.content")
+        },
+        {
+            id: 6,
+            title: t("templates.t6.title"),
+            description: t("templates.t6.desc"),
+            category: "Data Privacy",
+            content: t("templates.t6.content")
+        },
+        {
+            id: 7,
+            title: t("templates.t7.title"),
+            description: t("templates.t7.desc"),
+            category: "Contracts & Agreements",
+            content: t("templates.t7.content")
+        },
+        {
+            id: 8,
+            title: t("templates.t8.title"),
+            description: t("templates.t8.desc"),
+            category: "Intellectual Property",
+            content: t("templates.t8.content")
         }
     ];
 
@@ -127,7 +154,7 @@ const Templates: React.FC<TemplatesProps> = ({ onCustomize }) => {
             )}
             <div className="max-w-7xl w-full mx-auto p-4 sm:p-6 bg-slate-800/50 border border-slate-700 rounded-lg shadow-2xl">
                 <div className="text-center mb-10">
-                    <FileSignatureIcon className="mx-auto h-12 w-12 text-cyan-400" />
+                    <FileSignatureIcon className="mx-auto h-12 w-12 text-dynamic" />
                     <h2 className="mt-2 text-3xl font-bold text-slate-100">{t("templates.title")}</h2>
                     <p className="mt-2 max-w-2xl mx-auto text-slate-400">
                         {t("templates.subtitle")}
@@ -138,7 +165,7 @@ const Templates: React.FC<TemplatesProps> = ({ onCustomize }) => {
                     <button
                         onClick={() => setSelectedCategory('All')}
                         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                            selectedCategory === 'All' ? 'bg-cyan-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                            selectedCategory === 'All' ? 'bg-[color:var(--secondary-color)] text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
                         }`}
                     >
                         {t("templates.category.all")}
@@ -148,7 +175,7 @@ const Templates: React.FC<TemplatesProps> = ({ onCustomize }) => {
                             key={category}
                             onClick={() => setSelectedCategory(category)}
                             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                                selectedCategory === category ? 'bg-cyan-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
+                                selectedCategory === category ? 'bg-[color:var(--secondary-color)] text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300'
                             }`}
                         >
                             {getLocalizedCategory(category)}
@@ -161,11 +188,11 @@ const Templates: React.FC<TemplatesProps> = ({ onCustomize }) => {
                         <div
                             key={template.id}
                             onClick={() => setSelectedTemplate(template)}
-                            className="p-6 bg-slate-900 rounded-lg border border-slate-700 hover:border-cyan-500 cursor-pointer transition-all duration-300 flex flex-col group"
+                            className="p-6 bg-slate-900 rounded-lg border border-slate-700 hover:border-[color:var(--primary-color)] cursor-pointer transition-all duration-300 flex flex-col group"
                         >
-                            <h3 className="text-lg font-semibold text-slate-100 group-hover:text-cyan-400 transition-colors">{template.title}</h3>
+                            <h3 className="text-lg font-semibold text-slate-100 group-hover:text-dynamic transition-colors">{template.title}</h3>
                             <p className="text-sm text-slate-400 mt-2 flex-grow">{template.description}</p>
-                            <span className="mt-4 text-xs font-semibold px-2 py-1 bg-slate-700 text-cyan-300 rounded-full self-start">
+                            <span className="mt-4 text-xs font-semibold px-2 py-1 bg-slate-700 text-dynamic rounded-full self-start">
                                 {getLocalizedCategory(template.category)}
                             </span>
                         </div>

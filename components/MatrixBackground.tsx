@@ -1,8 +1,10 @@
 
 import React, { useRef, useEffect } from 'react';
+import { useTheme } from './ThemeContext';
 
 const MatrixBackground: React.FC = () => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const { theme } = useTheme();
 
     useEffect(() => {
         const canvas = canvasRef.current;
@@ -30,7 +32,8 @@ const MatrixBackground: React.FC = () => {
                 ctx.fillStyle = 'rgba(15, 23, 42, 0.05)'; // slate-900 with low opacity
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                ctx.fillStyle = '#06b6d4'; // cyan-500
+                // Dynamic color from theme
+                ctx.fillStyle = theme.primary; 
                 ctx.font = `${fontSize}px monospace`;
 
                 for (let i = 0; i < drops.length; i++) {
@@ -62,7 +65,7 @@ const MatrixBackground: React.FC = () => {
             cancelAnimationFrame(animationFrameId);
             window.removeEventListener('resize', handleResize);
         };
-    }, []);
+    }, [theme]); // Re-run effect when theme changes
 
     return <canvas ref={canvasRef} className="absolute top-0 left-0 w-full h-full z-0" />;
 };

@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { getCyberLawInfo } from '../services/geminiService';
 import { GroundingSource } from '../types';
@@ -33,17 +32,17 @@ const MarkdownRenderer: React.FC<{ content: string }> = ({ content }) => {
 
         if (line.match(/^\d+\.\s/)) { 
             flushList();
-            elements.push(<h3 key={index} className="text-xl font-semibold text-cyan-400 mt-6 mb-3 border-b border-slate-700 pb-2">{renderLine(line.replace(/^\d+\.\s/, ''))}</h3>);
+            elements.push(<h3 key={index} className="text-xl font-semibold text-dynamic mt-6 mb-3 border-b border-slate-700 pb-2">{renderLine(line.replace(/^\d+\.\s/, ''))}</h3>);
         } else if (line.startsWith('### ')) {
             flushList();
-            elements.push(<h3 key={index} className="text-xl font-semibold text-cyan-400 mt-6 mb-3 border-b border-slate-700 pb-2">{renderLine(line.substring(4))}</h3>);
+            elements.push(<h3 key={index} className="text-xl font-semibold text-dynamic mt-6 mb-3 border-b border-slate-700 pb-2">{renderLine(line.substring(4))}</h3>);
         } else if (line.startsWith('**') && line.endsWith('**')) { 
             flushList();
             elements.push(<h4 key={index} className="text-md font-semibold text-slate-200 mt-5 mb-2">{renderLine(line.slice(2, -2))}</h4>);
         } else if (line.startsWith('* ')) {
             listItems.push(
                 <li key={index} className="flex items-start gap-3 text-slate-300 leading-relaxed">
-                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-cyan-400 flex-shrink-0"></span>
+                    <span className="mt-2 w-1.5 h-1.5 rounded-full bg-[color:var(--primary-color)] flex-shrink-0"></span>
                     <span>{renderLine(line.substring(2))}</span>
                 </li>
             );
@@ -105,7 +104,7 @@ const KnowledgeHub: React.FC = () => {
                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8">
                     <div>
                         <h2 className="text-3xl font-bold text-slate-100">
-                           {t("knowledge.overview")}: <span className="text-cyan-400">{selectedRegion}</span>
+                           {t("knowledge.overview")}: <span className="text-dynamic">{selectedRegion}</span>
                         </h2>
                         <p className="mt-1 text-slate-400">{t("knowledge.subtitle")}</p>
                     </div>
@@ -117,7 +116,7 @@ const KnowledgeHub: React.FC = () => {
 
                 {isLoading && (
                     <div className="text-center p-8">
-                        <LoadingIcon className="w-8 h-8 mx-auto text-cyan-400" />
+                        <LoadingIcon className="w-8 h-8 mx-auto text-dynamic" />
                         <p className="mt-2 text-slate-400">{t("knowledge.fetch")}</p>
                     </div>
                 )}
@@ -141,9 +140,9 @@ const KnowledgeHub: React.FC = () => {
                                                 href={source.web.uri}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className="bg-slate-800 p-3 rounded-lg hover:bg-slate-700/70 transition-colors flex items-start gap-3 border border-slate-700 hover:border-cyan-500"
+                                                className="bg-slate-800 p-3 rounded-lg hover:bg-slate-700/70 transition-colors flex items-start gap-3 border border-slate-700 hover:border-[color:var(--primary-color)]"
                                             >
-                                                <LinkIcon className="w-4 h-4 text-cyan-400 mt-1 flex-shrink-0" />
+                                                <LinkIcon className="w-4 h-4 text-dynamic mt-1 flex-shrink-0" />
                                                 <div className="flex-grow">
                                                     <p className="text-sm font-medium text-slate-200 line-clamp-2">{source.web.title}</p>
                                                     <p className="text-xs text-slate-500 truncate">{new URL(source.web.uri).hostname}</p>
@@ -168,7 +167,7 @@ const KnowledgeHub: React.FC = () => {
     return (
         <div className="max-w-5xl mx-auto p-6 bg-slate-800/50 border border-slate-700 rounded-lg shadow-2xl">
             <div className="text-center mb-10">
-                <GlobeIcon className="mx-auto h-12 w-12 text-cyan-400" />
+                <GlobeIcon className="mx-auto h-12 w-12 text-dynamic" />
                 <h2 className="mt-2 text-3xl font-bold text-slate-100">{t("knowledge.title")}</h2>
                 <p className="mt-2 max-w-2xl mx-auto text-slate-400">
                     {t("knowledge.subtitle")}
@@ -180,7 +179,7 @@ const KnowledgeHub: React.FC = () => {
                     <button
                         key={region.key}
                         onClick={() => handleSelectRegion(region.key, region.name)}
-                        className="p-6 bg-slate-800 rounded-lg border border-slate-700 hover:border-cyan-400 hover:bg-slate-700 transition-all duration-300 flex flex-col items-center gap-3 group"
+                        className="p-6 bg-slate-800 rounded-lg border border-slate-700 hover:border-[color:var(--primary-color)] hover:bg-slate-700 transition-all duration-300 flex flex-col items-center gap-3 group"
                     >
                         <span className="text-5xl group-hover:scale-110 transition-transform">{region.emoji}</span>
                         <span className="font-semibold text-slate-200 text-center">{region.name}</span>

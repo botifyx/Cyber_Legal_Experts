@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { TimelineMilestone } from '../types';
 import { BotIcon, GavelIcon, LogoIcon, ChevronDownIcon } from './icons';
@@ -26,7 +25,7 @@ const AboutUs: React.FC = () => {
     return (
         <div className="max-w-5xl w-full mx-auto p-4 sm:p-6 bg-slate-800/50 border border-slate-700 rounded-lg shadow-2xl">
             <div className="text-center mb-12">
-                <LogoIcon className="mx-auto h-16 w-16 text-cyan-400" />
+                <LogoIcon className="mx-auto h-16 w-16 text-dynamic" />
                 <h2 className="mt-4 text-3xl font-bold text-slate-100">{t("about.title")}</h2>
                 <p className="mt-2 text-md text-slate-400 max-w-3xl mx-auto">
                     {t("about.desc")}
@@ -48,7 +47,7 @@ const AboutUs: React.FC = () => {
                                          {item.type === 'law' ? <GavelIcon className="w-5 h-5" /> : <BotIcon className="w-5 h-5" />}
                                     </div>
                                     <div>
-                                        <span className="text-cyan-400 font-bold block text-sm">{item.year}</span>
+                                        <span className="text-dynamic font-bold block text-sm">{item.year}</span>
                                         <span className="text-slate-200 font-semibold">{item.title}</span>
                                     </div>
                                 </div>

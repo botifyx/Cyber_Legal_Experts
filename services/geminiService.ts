@@ -60,11 +60,17 @@ const base64ToGeminiPart = (base64Data: string): Part => {
 export const sendCylexMessage = async (
     chat: Chat, 
     message: string,
-    image?: string | null
+    attachments?: string[]
 ): Promise<GenerateContentResponse> => {
     const contents: Part[] = [{ text: message }];
-    if (image) {
-        contents.push(base64ToGeminiPart(image));
+    if (attachments && attachments.length > 0) {
+        attachments.forEach(data => {
+            try {
+                contents.push(base64ToGeminiPart(data));
+            } catch (e) {
+                console.error("Error processing attachment:", e);
+            }
+        });
     }
     // Correct usage: pass the array of parts to the 'message' property
     const response = await chat.sendMessage({ message: contents });

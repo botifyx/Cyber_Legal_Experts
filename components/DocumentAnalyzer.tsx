@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback } from 'react';
 import { analyzeDocument } from '../services/geminiService';
 import { FileTextIcon, UploadIcon, LoadingIcon } from './icons';
@@ -59,7 +58,7 @@ const DocumentAnalyzer: React.FC = () => {
     return (
         <div className="max-w-4xl mx-auto p-6 bg-slate-800/50 border border-slate-700 rounded-lg shadow-2xl">
             <div className="text-center mb-6">
-                <FileTextIcon className="mx-auto h-12 w-12 text-cyan-400" />
+                <FileTextIcon className="mx-auto h-12 w-12 text-dynamic" />
                 <h2 className="mt-2 text-2xl font-semibold text-slate-100">{t("analyzer.title")}</h2>
                 <p className="mt-1 text-sm text-slate-400">{t("analyzer.subtitle")}</p>
             </div>
@@ -74,7 +73,7 @@ const DocumentAnalyzer: React.FC = () => {
                 <button
                     onClick={handleAnalyze}
                     disabled={!file || isLoading}
-                    className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed flex items-center justify-center"
+                    className="bg-[color:var(--secondary-color)] hover:bg-[color:var(--primary-color)] text-white font-bold py-2 px-6 rounded-lg transition-colors disabled:bg-slate-600 disabled:cursor-not-allowed flex items-center justify-center"
                 >
                     {isLoading ? <LoadingIcon className="w-5 h-5"/> : t("analyzer.btn")}
                 </button>
@@ -87,14 +86,14 @@ const DocumentAnalyzer: React.FC = () => {
                     <div className="relative mb-6">
                         <FileTextIcon className="w-16 h-16 text-slate-600 opacity-50" />
                         <div className="absolute inset-0 flex items-center justify-center">
-                             <LoadingIcon className="w-8 h-8 text-cyan-400" />
+                             <LoadingIcon className="w-8 h-8 text-dynamic" />
                         </div>
                     </div>
                     <h3 className="text-lg font-medium text-slate-200 mb-2">{t("analyzer.loading")}</h3>
                     <div className="flex flex-col items-center gap-2 w-full max-w-xs">
-                         <p className="text-sm text-cyan-400 animate-pulse">{t("analyzer.loading.desc")}</p>
+                         <p className="text-sm text-dynamic animate-pulse">{t("analyzer.loading.desc")}</p>
                          <div className="w-full h-1.5 bg-slate-700 rounded-full overflow-hidden">
-                            <div className="h-full bg-cyan-500 rounded-full" style={{ width: '40%', animation: 'progress-indeterminate 1.5s ease-in-out infinite' }}></div>
+                            <div className="h-full bg-[color:var(--primary-color)] rounded-full" style={{ width: '40%', animation: 'progress-indeterminate 1.5s ease-in-out infinite' }}></div>
                         </div>
                     </div>
                     <style>{`

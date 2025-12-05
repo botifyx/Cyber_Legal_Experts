@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 
 interface TickerProps {
@@ -9,9 +10,7 @@ interface TickerProps {
 const Ticker: React.FC<TickerProps> = ({ icon, items, interval = 5000 }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isFading, setIsFading] = useState(false);
-    // FIX: Use ReturnType<typeof setTimeout> for browser compatibility instead of NodeJS.Timeout.
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    // FIX: Use ReturnType<typeof setInterval> for browser compatibility instead of NodeJS.Timeout.
     const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
     useEffect(() => {
@@ -41,7 +40,7 @@ const Ticker: React.FC<TickerProps> = ({ icon, items, interval = 5000 }) => {
 
     return (
         <div className="flex items-center gap-3 bg-slate-800/60 backdrop-blur-sm border border-slate-700 rounded-full px-4 py-2 text-sm max-w-sm w-full">
-            <span className="text-cyan-400 flex-shrink-0">{icon}</span>
+            <span className="text-dynamic flex-shrink-0">{icon}</span>
             <div className="overflow-hidden h-5 flex-grow relative">
                  <span 
                     className={`absolute inset-0 transition-opacity duration-300 ease-in-out whitespace-nowrap ${isFading ? 'opacity-0' : 'opacity-100'}`}

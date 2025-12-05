@@ -19,6 +19,7 @@ import { BotIcon, FileTextIcon, NewspaperIcon, CompassIcon, LogoIcon, ShieldChec
 import MatrixBackground from './components/MatrixBackground';
 import Ticker from './components/Ticker';
 import { LanguageProvider, useLanguage } from './components/LanguageContext';
+import { ThemeProvider } from './components/ThemeContext';
 
 export type ActiveView = 'home' | 'analyzer' | 'summarizer' | 'copilot' | 'casedna' | 'riskmeter' | 'predictor' | 'insights' | 'labs' | 'about' | 'engage' | 'knowledgehub' | 'templates';
 
@@ -108,7 +109,7 @@ const AppContent: React.FC = () => {
                                     {t("hero.title").split("Cyber").map((part, i, arr) => (
                                         <React.Fragment key={i}>
                                             {part}
-                                            {i < arr.length - 1 && <span className="text-cyan-400">Cyber</span>}
+                                            {i < arr.length - 1 && <span className="text-dynamic">Cyber</span>}
                                         </React.Fragment>
                                     ))}
                                 </h1>
@@ -125,13 +126,13 @@ const AppContent: React.FC = () => {
                         {/* Features Section */}
                         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative z-10">
                             <div className="text-center mb-16 animate-slide-in">
-                                <span className="text-cyan-400 font-semibold tracking-wider text-sm uppercase mb-2 block">
+                                <span className="text-dynamic font-semibold tracking-wider text-sm uppercase mb-2 block">
                                     {t("section.toolkit")}
                                 </span>
                                 <h2 className="text-3xl md:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white via-slate-200 to-slate-400">
                                     {t("section.toolkit.title")}
                                 </h2>
-                                <div className="h-1 w-24 bg-cyan-500 mx-auto mt-6 rounded-full shadow-[0_0_10px_rgba(6,182,212,0.6)]"></div>
+                                <div className="h-1 w-24 bg-dynamic mx-auto mt-6 rounded-full shadow-dynamic"></div>
                                 <p className="max-w-2xl mx-auto text-slate-400 mt-6 text-lg">
                                     {t("section.toolkit.desc")}
                                 </p>
@@ -222,7 +223,7 @@ const AppContent: React.FC = () => {
             {!isChatOpen ? (
                 <button 
                     onClick={() => handleOpenChat()}
-                    className="fixed bottom-6 right-6 bg-cyan-600 hover:bg-cyan-500 text-white p-4 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 z-20"
+                    className="fixed bottom-6 right-6 bg-dynamic hover:opacity-90 text-white p-4 rounded-full shadow-lg transform hover:scale-110 transition-all duration-300 z-20"
                     aria-label="Open Cylex AI Assistant"
                 >
                     <ChatBubbleIcon className="w-6 h-6" />
@@ -236,9 +237,11 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => {
     return (
-        <LanguageProvider>
-            <AppContent />
-        </LanguageProvider>
+        <ThemeProvider>
+            <LanguageProvider>
+                <AppContent />
+            </LanguageProvider>
+        </ThemeProvider>
     );
 }
 

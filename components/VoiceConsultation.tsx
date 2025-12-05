@@ -1,4 +1,3 @@
-
 import { Blob, LiveServerMessage, LiveSession } from '@google/genai';
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { connectCylexVoice } from '../services/geminiService';
@@ -195,11 +194,11 @@ const VoiceConsultation: React.FC<VoiceConsultationProps> = ({ onBack }) => {
         <div className="max-w-4xl w-full mx-auto">
              <div className="flex justify-between items-center mb-6">
                 <div className="text-left">
-                    <PodcastIcon className="h-12 w-12 text-cyan-400" />
+                    <PodcastIcon className="h-12 w-12 text-dynamic" />
                     <h2 className="mt-2 text-2xl font-semibold text-slate-100">{t("voice.title")}</h2>
                     <p className="mt-1 text-sm text-slate-400">{t("voice.subtitle")}</p>
                 </div>
-                <button onClick={onBack} className="text-sm font-semibold text-cyan-400 hover:text-cyan-300">
+                <button onClick={onBack} className="text-sm font-semibold text-dynamic hover:opacity-80">
                     &larr; {t("voice.back")}
                 </button>
             </div>
@@ -208,7 +207,7 @@ const VoiceConsultation: React.FC<VoiceConsultationProps> = ({ onBack }) => {
                 <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-700">
                     {getStatusIndicator()}
                     {status === 'disconnected' || status === 'error' ? (
-                        <button onClick={handleStartConsultation} className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold py-2 px-4 rounded-lg">{t("voice.btn.start")}</button>
+                        <button onClick={handleStartConsultation} className="bg-[color:var(--secondary-color)] hover:bg-[color:var(--primary-color)] text-white font-bold py-2 px-4 rounded-lg">{t("voice.btn.start")}</button>
                     ) : (
                         <button onClick={stopConsultation} className="bg-red-600 hover:bg-red-500 text-white font-bold py-2 px-4 rounded-lg">{t("voice.btn.end")}</button>
                     )}
@@ -217,7 +216,7 @@ const VoiceConsultation: React.FC<VoiceConsultationProps> = ({ onBack }) => {
                 <div className="h-80 bg-slate-800 rounded-md p-3 overflow-y-auto custom-scrollbar space-y-4">
                     {transcript.map((entry, index) => (
                         <div key={index} className={`flex items-start gap-3 ${entry.speaker === 'user' ? 'justify-end' : ''}`}>
-                            {entry.speaker === 'model' && <div className="flex-shrink-0 w-8 h-8 rounded-full bg-cyan-500/20 flex items-center justify-center border border-cyan-500/30"><BotIcon className="w-5 h-5 text-cyan-400" /></div>}
+                            {entry.speaker === 'model' && <div className="flex-shrink-0 w-8 h-8 rounded-full bg-[rgba(var(--primary-rgb),0.2)] flex items-center justify-center border border-[color:var(--primary-color)] opacity-70"><BotIcon className="w-5 h-5 text-dynamic" /></div>}
                             <div className={`max-w-md p-3 rounded-lg text-sm ${entry.speaker === 'user' ? 'bg-slate-700 text-slate-200' : 'bg-slate-700/50 text-slate-300'}`}>
                                 {entry.text}
                             </div>
